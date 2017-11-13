@@ -93,6 +93,7 @@ class AppKernel extends Kernel
             new Pim\Bundle\NotificationBundle\PimNotificationBundle(),
             new Pim\Bundle\PdfGeneratorBundle\PimPdfGeneratorBundle(),
             new Pim\Bundle\ReferenceDataBundle\PimReferenceDataBundle(),
+            new Pim\Bundle\ResearchBundle\PimResearchBundle(),
             new Pim\Bundle\UIBundle\PimUIBundle(),
             new Pim\Bundle\VersioningBundle\PimVersioningBundle(),
         ];

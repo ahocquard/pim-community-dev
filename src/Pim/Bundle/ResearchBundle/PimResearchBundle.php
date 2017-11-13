@@ -2,15 +2,16 @@
 
 namespace Pim\Bundle\ResearchBundle;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Pim\Bundle\ResearchBundle\Infrastructure\DI\Symfony\PimResearchExtension;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class ResearchBundle extends Bundle
+class PimResearchBundle extends Bundle
 {
     /**
      * {@inheritdoc}
      */
-    public function build(ContainerBuilder $container)
+    public function getContainerExtension()
     {
+        return new PimResearchExtension();
     }
 }
