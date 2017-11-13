@@ -195,6 +195,11 @@ suites:
         psr4_prefix: Pim\Bundle\ReferenceDataBundle
         spec_path: src/Pim/Bundle/ReferenceDataBundle
         src_path: src/Pim/Bundle/ReferenceDataBundle
+    ResearchBundle:
+        namespace: Pim\Bundle\ResearchBundle
+        psr4_prefix: Pim\Bundle\ResearchBundle
+        spec_path: src/Pim/Bundle/ResearchBundle/tests
+        src_path: src/Pim/Bundle/ResearchBundle
     UIBundle:
         namespace: Pim\Bundle\UIBundle
         psr4_prefix: Pim\Bundle\UIBundle
