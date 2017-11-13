@@ -70,7 +70,8 @@
         "symfony/symfony": "3.3.6",
         "symfony/polyfill-apcu": "1.4.0",
         "twig/extensions": "1.2.0",
-        "box/spout": "2.7.2"
+        "box/spout": "2.7.2",
+        "webonyx/graphql-php": "^0.11.2"
     },
     "require-dev": {
         "akeneo/phpspec-skip-example-extension": "2.0.*",
