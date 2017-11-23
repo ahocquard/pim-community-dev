@@ -28,7 +28,7 @@ class DatabaseProductRepository implements ProductRepository
     public function withIdentifier(ProductIdentifier $productIdentifier): ?Product
     {
         $sql = <<<SQL
-SELECT p.created, p.updated, p.is_enabled, f.code
+SELECT p.created, p.updated, p.is_enabled, f.code as family_code
 FROM pim_catalog_product p
 JOIN pim_catalog_family f ON f.id = p.family_id
 WHERE p.identifier = :identifier
@@ -48,7 +48,7 @@ SQL;
         $created = Type::getType(Type::DATETIME)->convertToPhpValue($row['created'], $platform);
         $updated = Type::getType(Type::DATETIME)->convertToPhpValue($row['updated'], $platform);
         $isEnabled = Type::getType(Type::BOOLEAN)->convertToPhpValue($row['is_enabled'], $platform);
-        $familyCode = Type::getType(Type::STRING)->convertToPhpValue($row['code'], $platform);
+        $familyCode = Type::getType(Type::STRING)->convertToPhpValue($row['family_code'], $platform);
 
         return new Product(
             $productIdentifier,
