@@ -13,7 +13,6 @@ class ProductSpec extends ObjectBehavior
     function let()
     {
         $this->beConstructedWith(
-            ProductId::createFromString('id'),
             ProductIdentifier::createFromString('identifier'),
             new \DateTime('2017-05-07T00:00:00+01:00'),
             new \DateTime('2017-05-08T00:00:00+01:00'),
@@ -25,12 +24,6 @@ class ProductSpec extends ObjectBehavior
     function it_is_initializable()
     {
         $this->shouldHaveType(Product::class);
-    }
-
-    function it_returns_id()
-    {
-        $this->id()->shouldBeAnInstanceOf(ProductId::class);
-        $this->id()->getValue()->shouldReturn('id');
     }
 
     function it_returns_identifier()

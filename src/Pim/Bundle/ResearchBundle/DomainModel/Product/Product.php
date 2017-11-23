@@ -8,9 +8,6 @@ use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 
 class Product
 {
-    /** @var ProductId */
-    private $id;
-
     /** @var ProductIdentifier */
     private $identifier;
 
@@ -27,7 +24,6 @@ class Product
     private $family;
 
     /**
-     * @param ProductId          $id
      * @param ProductIdentifier  $identifier
      * @param \DateTimeInterface $created
      * @param \DateTimeInterface $updated
@@ -35,27 +31,17 @@ class Product
      * @param FamilyCode         $family
      */
     public function __construct(
-        ProductId $id,
         ProductIdentifier $identifier,
         \DateTimeInterface $created,
         ?\DateTimeInterface $updated,
         bool $enabled,
         ?FamilyCode $family
     ) {
-        $this->id = $id;
         $this->identifier = $identifier;
         $this->created = $created;
         $this->updated = $updated;
         $this->enabled = $enabled;
         $this->family = $family;
-    }
-
-    /**
-     * @return ProductId
-     */
-    public function id(): ProductId
-    {
-        return $this->id;
     }
 
     /**

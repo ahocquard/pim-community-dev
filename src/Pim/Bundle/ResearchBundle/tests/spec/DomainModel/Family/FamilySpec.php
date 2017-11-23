@@ -13,7 +13,6 @@ class FamilySpec extends ObjectBehavior
     function let()
     {
         $this->beConstructedWith(
-            FamilyId::createFromString('id'),
             FamilyCode::createFromString('code'),
             new \DateTime('2017-05-07T00:00:00+01:00'),
             new \DateTime('2017-05-08T00:00:00+01:00')
@@ -23,12 +22,6 @@ class FamilySpec extends ObjectBehavior
     function it_is_initializable()
     {
         $this->shouldHaveType(Family::class);
-    }
-
-    function it_returns_id()
-    {
-        $this->id()->shouldBeAnInstanceOf(FamilyId::class);
-        $this->id()->getValue()->shouldReturn('id');
     }
 
     function it_returns_code()

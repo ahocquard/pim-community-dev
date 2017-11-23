@@ -31,7 +31,7 @@ class DatabaseFamilyRepository implements FamilyRepository
     public function withCode(FamilyCode $familyCode): ?Family
     {
         $sql = <<<SQL
-SELECT f.id, f.created, f.updated
+SELECT f.created, f.updated
 FROM pim_catalog_family f
 WHERE f.code = :code
 SQL;
@@ -47,12 +47,10 @@ SQL;
 
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
-        $id = Type::getType(Type::STRING)->convertToPhpValue($row['id'], $platform);
         $created = Type::getType(Type::DATETIME)->convertToPhpValue($row['created'], $platform);
         $updated = Type::getType(Type::DATETIME)->convertToPhpValue($row['updated'], $platform);
 
         return new Family(
-            FamilyId::createFromString($id),
             $familyCode,
             $created,
             $updated
