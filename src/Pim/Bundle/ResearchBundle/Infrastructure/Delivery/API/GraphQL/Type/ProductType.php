@@ -4,20 +4,16 @@ declare(strict_types=1);
 
 namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type;
 
-use GraphQL\Type\Definition\BooleanType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\StringType;
 use GraphQL\Type\Definition\Type;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyId;
+use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyRepository;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types;
 
 class ProductType extends ObjectType
 {
-    public function __construct(Types $types)
+    public function __construct(Types $types, FamilyRepository $familyRepository)
     {
         $config = [
             'name' => 'Product',
@@ -31,7 +27,7 @@ class ProductType extends ObjectType
                     'family' => $types->get(FamilyType::class)
                 ];
             },
-            'resolveField' => function(Product $product, $args, $context, ResolveInfo $info) {
+            'resolveField' => function(Product $product, $args, $context, ResolveInfo $info) use ($familyRepository) {
                 switch ($info->fieldName) {
                     case 'identifier':
                         return $product->identifier()->getValue();
@@ -42,11 +38,7 @@ class ProductType extends ObjectType
                     case 'enabled':
                         return $product->updated()->format(\DateTime::ISO8601);
                     case 'family':
-                        return new Family(
-                            FamilyCode::createFromString('family_code'),
-                            new \DateTimeImmutable('2017-05-07T00:00:00+01:00'),
-                            new \DateTimeImmutable('2017-05-08T00:00:00+01:00')
-                        );
+                        return $familyRepository->withCode($product->family());
                     default:
                         return null;
                 }

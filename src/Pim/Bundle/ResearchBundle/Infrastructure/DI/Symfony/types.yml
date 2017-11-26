@@ -31,6 +31,7 @@ services:
         class: '%pim_research.infrastructure.delivery.api.graphql.type.product_type.class%'
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
+            - '@pim_research.domain_model.family.family_repository'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true

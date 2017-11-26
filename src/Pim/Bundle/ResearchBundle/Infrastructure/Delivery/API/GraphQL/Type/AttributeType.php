@@ -8,7 +8,6 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types;
 
 class AttributeType extends ObjectType
