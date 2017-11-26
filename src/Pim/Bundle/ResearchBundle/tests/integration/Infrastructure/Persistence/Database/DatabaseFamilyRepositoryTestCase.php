@@ -43,7 +43,7 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
 
     public function test_with_code_on_persisted_family()
     {
-        $repository = static::$kernel->getContainer()->get('pim_research.infrastructure.persistence.database.database_family_repository');
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.family.family_repository');
 
         $family = $repository->withCode(FamilyCode::createFromString('family_code'));
         Assert::assertNotNull($family);
@@ -54,7 +54,7 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
 
     public function test_with_code_on_non_existing_family()
     {
-        $repository = static::$kernel->getContainer()->get('pim_research.infrastructure.persistence.database.database_family_repository');
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.family.family_repository');
 
         $family = $repository->withCode(FamilyCode::createFromString('foo'));
         Assert::assertNull($family);

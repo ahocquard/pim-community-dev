@@ -3,7 +3,6 @@
 namespace spec\Pim\Bundle\ResearchBundle\DomainModel\Family;
 
 use PhpSpec\ObjectBehavior;
-use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyId;

@@ -4,7 +4,6 @@ namespace spec\Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Statement;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;

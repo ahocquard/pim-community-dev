@@ -51,7 +51,7 @@ class DatabaseProductRepositoryTestCase extends KernelTestCase
 
     public function test_with_identifier_on_persisted_product()
     {
-        $repository = static::$kernel->getContainer()->get('pim_research.infrastructure.persistence.database.database_product_repository');
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.product.product_repository');
 
         $product = $repository->withIdentifier(ProductIdentifier::createFromString('test_with_identifier'));
         Assert::assertNotNull($product);
@@ -64,7 +64,7 @@ class DatabaseProductRepositoryTestCase extends KernelTestCase
 
     public function test_with_identifier_on_non_existing_product()
     {
-        $repository = static::$kernel->getContainer()->get('pim_research.infrastructure.persistence.database.database_product_repository');
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.product.product_repository');
 
         $product = $repository->withIdentifier(ProductIdentifier::createFromString('foo'));
         Assert::assertNull($product);

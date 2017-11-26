@@ -40,7 +40,9 @@ class QueryType extends ObjectType
                         'identifier' => Type::nonNull(Type::string()),
                     ],
                     'resolve' => function($root, $args) {
-                        return $this->productRepository->withIdentifier(ProductIdentifier::createFromString($args['identifier']));
+                        return $this->productRepository->withIdentifier(
+                            ProductIdentifier::createFromString($args['identifier'])
+                        );
                     }
                 ],
                 'family' => [
