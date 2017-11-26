@@ -1,6 +1,6 @@
 <?php
 
-namespace Pim\Bundle\ResearchBundle\Infrastructure\DI\Symfony;
+namespace Pim\Bundle\ResearchBundle\Infrastructure\DI\Symfony\Extension;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -15,6 +15,8 @@ class PimResearchExtension extends Extension
     public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
-        $loader->load('services.yml');
+        $loader->load('../services.yml');
+        $loader->load('../controllers.yml');
+        $loader->load('../types.yml');
     }
 }

@@ -1,0 +1,49 @@
+parameters:
+    pim_research.infrastructure.delivery.api.graphql.types.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types
+    pim_research.infrastructure.delivery.api.graphql.type.query_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\QueryType
+    pim_research.infrastructure.delivery.api.graphql.type.family_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\FamilyType
+    pim_research.infrastructure.delivery.api.graphql.type.product_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\ProductType
+    pim_research.infrastructure.delivery.api.graphql.type.string_type.class: GraphQL\Type\Definition\StringType
+    pim_research.infrastructure.delivery.api.graphql.type.boolean_type.class: GraphQL\Type\Definition\BooleanType
+
+services:
+    pim_research.infrastructure.delivery.api.graphql.types:
+        class: '%pim_research.infrastructure.delivery.api.graphql.types.class%'
+
+    pim_research.infrastructure.delivery.api.graphql.type.query_type:
+        class: '%pim_research.infrastructure.delivery.api.graphql.type.query_type.class%'
+        arguments:
+            - '@pim_research.infrastructure.delivery.api.graphql.types'
+            - '@pim_research.domain_model.product.product_repository'
+            - '@pim_research.domain_model.family.family_repository'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true
+
+    pim_research.infrastructure.delivery.api.graphql.type.family_type:
+        class: '%pim_research.infrastructure.delivery.api.graphql.type.family_type.class%'
+        arguments:
+            - '@pim_research.infrastructure.delivery.api.graphql.types'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true
+
+    pim_research.infrastructure.delivery.api.graphql.type.product_type:
+        class: '%pim_research.infrastructure.delivery.api.graphql.type.product_type.class%'
+        arguments:
+            - '@pim_research.infrastructure.delivery.api.graphql.types'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true
+
+    pim_research.infrastructure.delivery.api.graphql.type.string_type:
+        class: '%pim_research.infrastructure.delivery.api.graphQL.type.string_type.class%'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true
+
+    pim_research.infrastructure.delivery.api.graphql.type.boolean_type:
+        class: '%pim_research.infrastructure.delivery.api.graphQL.type.boolean_type.class%'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true

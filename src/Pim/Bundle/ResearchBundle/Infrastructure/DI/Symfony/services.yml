@@ -3,12 +3,12 @@ parameters:
     pim_research.infrastructure.persistence.database.database_product_repository.class:  Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseProductRepository
 
 services:
-    pim_research.infrastructure.persistence.database.database_family_repository:
+    pim_research.domain_model.family.family_repository:
         class: '%pim_research.infrastructure.persistence.database.database_family_repository.class%'
         arguments:
             - '@doctrine.orm.entity_manager'
 
-    pim_research.infrastructure.persistence.database.database_product_repository:
+    pim_research.domain_model.product.product_repository:
         class: '%pim_research.infrastructure.persistence.database.database_product_repository.class%'
         arguments:
             - '@doctrine.orm.entity_manager'
