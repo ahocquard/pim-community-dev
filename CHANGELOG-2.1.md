@@ -2,7 +2,9 @@
 
 ## Improvements 
 
+- PIM-6480: Add gallery view and display selector to the product grid
 - PIM-6966: Add tracker information for product model, product variant and family variant
+
 
 ## BC breaks
 
