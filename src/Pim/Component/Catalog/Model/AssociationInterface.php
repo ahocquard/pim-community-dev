@@ -3,6 +3,7 @@
 namespace Pim\Component\Catalog\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Pim\Component\Catalog\Model\ProductModelInterface;
 
 /**
  * Association interface
@@ -62,6 +63,43 @@ interface AssociationInterface extends ReferableInterface
      * @return bool
      */
     public function hasProduct(ProductInterface $product);
+
+    /**
+     * Get product models
+     *
+     * @return ProductModelInterface[]|ArrayCollection
+     */
+    public function getProductModels();
+
+    /**
+     * Set product models
+     *
+     * @param ProductModelInterface[] $productModels
+     */
+    public function setProductModels($productModels): void;
+
+    /**
+     * Add a product model
+     *
+     * @param ProductModelInterface $productModel
+     */
+    public function addProductModel(ProductModelInterface $productModel): void;
+
+    /**
+     * Remove a product model
+     *
+     * @param ProductModelInterface $productModel
+     */
+    public function removeProductModel(ProductModelInterface $productModel): void;
+
+    /**
+     * Has a productModel
+     *
+     * @param ProductModelInterface $productModel
+     *
+     * @return bool
+     */
+    public function hasProductModel(ProductModelInterface $productModel);
 
     /**
      * Set groups
