@@ -1,6 +1,6 @@
 # 2.1
 
-## Improvements
+## Improvements 
 
 - PIM-6480: Add gallery view and display selector to the product grid
 - PIM-6621: add search on label and code on products and product models
