@@ -615,4 +615,14 @@ class ProductModel implements ProductModelInterface
 
         return false;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setCategories(Collection $categories)
+    {
+        $this->categories = $categories;
+
+        return $this;
+    }
 }
