@@ -7,12 +7,13 @@ namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeRepository;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types;
 
 class FamilyType extends ObjectType
 {
-    public function __construct(Types $types)
+    public function __construct(Types $types, AttributeRepository $attributeRepository)
     {
         $config = [
             'name' => 'Family',
@@ -22,9 +23,10 @@ class FamilyType extends ObjectType
                     'code' => Type::string(),
                     'created' => Type::string(),
                     'updated' => Type::string(),
+                    'attribute_as_label' => $types->get(AttributeType::class)
                 ];
             },
-            'resolveField' => function(Family $family, $args, $context, ResolveInfo $info) {
+            'resolveField' => function(Family $family, $args, $context, ResolveInfo $info) use ($attributeRepository) {
                 switch ($info->fieldName) {
                     case 'code':
                         return $family->code()->getValue();
@@ -32,6 +34,8 @@ class FamilyType extends ObjectType
                         return $family->created()->format(\DateTime::ISO8601);
                     case 'updated':
                         return $family->updated()->format(\DateTime::ISO8601);
+                    case 'attribute_as_label':
+                        return $attributeRepository->withCode($family->attributeAsLabel());
                     default:
                         return null;
                 }

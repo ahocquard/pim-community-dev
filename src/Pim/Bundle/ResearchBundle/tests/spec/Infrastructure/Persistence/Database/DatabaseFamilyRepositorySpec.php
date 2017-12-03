@@ -7,6 +7,7 @@ use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Statement;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpSpec\ObjectBehavior;
+use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseFamilyRepository;
@@ -33,7 +34,8 @@ class DatabaseFamilyRepositorySpec extends ObjectBehavior
         $stmt->execute()->shouldBeCalled();
         $stmt->fetch()->willReturn([
             'created' => '2017-05-07 00:00:00',
-            'updated' => '2017-05-08 00:00:00'
+            'updated' => '2017-05-08 00:00:00',
+            'attribute_code' => 'attribute_code'
         ]);
 
         $this
@@ -42,7 +44,8 @@ class DatabaseFamilyRepositorySpec extends ObjectBehavior
                 new Family(
                     FamilyCode::createFromString('family_code'),
                     new \DateTime('2017-05-07 00:00:00'),
-                    new \DateTime('2017-05-08 00:00:00')
+                    new \DateTime('2017-05-08 00:00:00'),
+                    AttributeCode::createFromString('attribute_code')
                 )
             );
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pim\Bundle\ResearchBundle\DomainModel\Family;
 
+use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
+
 class Family
 {
     /** @var FamilyCode */
@@ -15,14 +17,19 @@ class Family
     /** @var \DateTimeInterface */
     private $updated;
 
+    /** @var AttributeCode */
+    private $attributeAsLabel;
+
     public function __construct(
         FamilyCode $code,
         \DateTimeInterface $created,
-        ?\DateTimeInterface $updated
+        \DateTimeInterface $updated,
+        ?AttributeCode $attributeAsLabel
     ) {
         $this->code = $code;
         $this->created = $created;
         $this->updated = $updated;
+        $this->attributeAsLabel = $attributeAsLabel;
     }
 
     public function code(): FamilyCode
@@ -35,8 +42,13 @@ class Family
         return $this->created;
     }
 
-    public function updated(): ?\DateTimeInterface
+    public function updated(): \DateTimeInterface
     {
         return $this->updated;
+    }
+
+    public function attributeAsLabel(): ?AttributeCode
+    {
+        return $this->attributeAsLabel;
     }
 }

@@ -42,7 +42,7 @@ JSON;
     public function test_get_a_complete_family()
     {
         $query = <<<GRAPHQL
-{ family(code: \"family_code\") { code, created, updated } }
+{ family(code: \"family_code\") { code, created, updated, attribute_as_label { code } } }
 GRAPHQL;
 
         $data = <<<JSON
@@ -62,7 +62,10 @@ JSON;
         "family": {
             "code": "family_code",
             "created": "2017-05-07T00:00:00+0100",
-            "updated": "2017-05-08T00:00:00+0100"
+            "updated": "2017-05-08T00:00:00+0100",
+            "attribute_as_label": {
+                "code": "attribute_code"
+            }
         }
     }
 }

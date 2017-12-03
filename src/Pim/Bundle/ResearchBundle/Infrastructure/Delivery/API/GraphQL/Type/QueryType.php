@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type;
 
 use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\StringType;
 use GraphQL\Type\Definition\Type;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyRepository;

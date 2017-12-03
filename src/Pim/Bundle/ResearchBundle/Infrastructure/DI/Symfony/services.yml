@@ -14,7 +14,7 @@ services:
         arguments:
             - '@doctrine.orm.entity_manager'
 
-    pim_research.domain_model.product.attribute_repository:
+    pim_research.domain_model.attribute.attribute_repository:
         class: '%pim_research.infrastructure.persistence.database.database_attribute_repository.class%'
         arguments:
             - '@doctrine.orm.entity_manager'
