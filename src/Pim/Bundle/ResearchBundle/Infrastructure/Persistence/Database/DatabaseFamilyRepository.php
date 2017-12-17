@@ -27,35 +27,46 @@ class DatabaseFamilyRepository implements FamilyRepository
     public function withCode(FamilyCode $familyCode): ?Family
     {
         $sql = <<<SQL
-SELECT f.created, f.updated, a.code, a_label.code as attribute_as_label_code
-FROM pim_catalog_family f
-JOIN pim_catalog_family_attribute fa on fa.family_id = f.id
-JOIN pim_catalog_attribute a on a.id = fa.attribute_id
-LEFT JOIN pim_catalog_attribute a_label on a_label.id = f.label_attribute_id
-WHERE f.code = :code
+            SELECT 
+                f.created, 
+                f.updated, 
+                a.code as attribute_code, 
+                a_label.code as attribute_as_label_code
+            FROM pim_catalog_family f
+            LEFT JOIN pim_catalog_family_attribute fa on fa.family_id = f.id
+            LEFT JOIN pim_catalog_attribute a on a.id = fa.attribute_id
+            LEFT JOIN pim_catalog_attribute a_label on a_label.id = f.label_attribute_id
+            WHERE f.code = :code
 SQL;
 
         $stmt = $this->entityManager->getConnection()->prepare($sql);
         $stmt->bindValue('code', $familyCode->getValue());
         $stmt->execute();
-        $row = $stmt->fetch();
+        $rows = $stmt->fetchAll();
 
-        if (false === $row) {
+        if (empty($rows)) {
             return null;
         }
 
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
-        $created = Type::getType(Type::DATETIME)->convertToPhpValue($row['created'], $platform);
-        $updated = Type::getType(Type::DATETIME)->convertToPhpValue($row['updated'], $platform);
-        $attributeCode = Type::getType(Type::STRING)->convertToPhpValue($row['attribute_as_label_code'], $platform);
+        $created = Type::getType(Type::DATETIME)->convertToPhpValue($rows[0]['created'], $platform);
+        $updated = Type::getType(Type::DATETIME)->convertToPhpValue($rows[0]['updated'], $platform);
+        $attributeAsLabelCode = Type::getType(Type::STRING)->convertToPhpValue($rows[0]['attribute_as_label_code'], $platform);
+
+        $attributeCodes = [];
+        foreach ($rows as $row) {
+            if (isset($row['attribute_code'])) {
+                $attributeCodes[] = AttributeCode::createFromString($row['attribute_code']);
+            }
+        }
 
         return new Family(
             $familyCode,
             $created,
             $updated,
-            [],
-            null !== $attributeCode ? AttributeCode::createFromString($attributeCode) : null
+            $attributeCodes,
+            null !== $attributeAsLabelCode ? AttributeCode::createFromString($attributeAsLabelCode) : null
         );
     }
 }

@@ -24,7 +24,7 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
 
         $family = new Family(
-            FamilyCode::createFromString('family_code'),
+            FamilyCode::createFromString('complete_family_code'),
             new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
             new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
             [
@@ -42,6 +42,15 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
             [
                 AttributeCode::createFromString('attribute_code_1'),
                 AttributeCode::createFromString('attribute_code_2'),
+            ],
+            null
+        );
+
+        $familyWithoutAttribute = new Family(
+            FamilyCode::createFromString('family_code_without_attribute'),
+            new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
+            new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
+            [
             ],
             null
         );
@@ -72,17 +81,22 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         $this->persistAttributeInDatabase($attribute2);
         $this->persistFamilyInDatabase($family);
         $this->persistFamilyInDatabase($familyWithoutAttributeAsLabel);
+        $this->persistFamilyInDatabase($familyWithoutAttribute);
     }
 
     public function test_with_code_on_persisted_family_with_attribute_as_label()
     {
         $repository = static::$kernel->getContainer()->get('pim_research.domain_model.family.family_repository');
 
-        $family = $repository->withCode(FamilyCode::createFromString('family_code'));
+        $family = $repository->withCode(FamilyCode::createFromString('complete_family_code'));
         Assert::assertNotNull($family);
-        Assert::assertEquals('family_code', $family->code()->getValue());
+        Assert::assertEquals('complete_family_code', $family->code()->getValue());
         Assert::assertEquals(new \DateTime('2017-05-07T00:00:00+00:00'), $family->created());
         Assert::assertEquals(new \DateTime('2017-05-08T00:00:00+00:00'), $family->updated());
+        Assert::assertCount(3, $family->attributeCodes());
+        Assert::assertEquals('attribute_as_label_code', $family->attributeCodes()[0]->getValue());
+        Assert::assertEquals('attribute_code_1', $family->attributeCodes()[1]->getValue());
+        Assert::assertEquals('attribute_code_2', $family->attributeCodes()[2]->getValue());
         Assert::assertTrue($family->hasAttributeAsLabel());
         Assert::assertEquals('attribute_as_label_code', $family->attributeAsLabelCode()->getValue());
     }
@@ -96,6 +110,23 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         Assert::assertEquals('family_code_without_label', $family->code()->getValue());
         Assert::assertEquals(new \DateTime('2017-05-07T00:00:00+00:00'), $family->created());
         Assert::assertEquals(new \DateTime('2017-05-08T00:00:00+00:00'), $family->updated());
+        Assert::assertCount(2, $family->attributeCodes());
+        Assert::assertEquals('attribute_code_1', $family->attributeCodes()[0]->getValue());
+        Assert::assertEquals('attribute_code_2', $family->attributeCodes()[1]->getValue());
+        Assert::assertFalse($family->hasAttributeAsLabel());
+        Assert::assertNull($family->attributeAsLabelCode());
+    }
+
+    public function test_with_code_on_persisted_family_without_attribute()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.family.family_repository');
+
+        $family = $repository->withCode(FamilyCode::createFromString('family_code_without_attribute'));
+        Assert::assertNotNull($family);
+        Assert::assertEquals('family_code_without_attribute', $family->code()->getValue());
+        Assert::assertEquals(new \DateTime('2017-05-07T00:00:00+00:00'), $family->created());
+        Assert::assertEquals(new \DateTime('2017-05-08T00:00:00+00:00'), $family->updated());
+        Assert::assertCount(0, $family->attributeCodes());
         Assert::assertFalse($family->hasAttributeAsLabel());
         Assert::assertNull($family->attributeAsLabelCode());
     }
@@ -118,8 +149,8 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         }
 
         $sql = <<<SQL
-INSERT INTO pim_catalog_family (code, created, updated, label_attribute_id)
-VALUES (:code, :created, :updated, :label_attribute_id)
+            INSERT INTO pim_catalog_family (code, created, updated, label_attribute_id)
+            VALUES (:code, :created, :updated, :label_attribute_id)
 SQL;
 
         $stmt = $entityManager->getConnection()->prepare($sql);
