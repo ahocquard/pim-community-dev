@@ -6,8 +6,6 @@ use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyId;
-use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductId;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -92,7 +90,7 @@ class DatabaseAttributeRepositoryTestCase extends KernelTestCase
         Assert::assertEquals([], $attributes);
     }
 
-    private function persistAttributeInDatabase(Attribute $attribute)
+    private function persistAttributeInDatabase(Attribute $attribute): void
     {
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
 

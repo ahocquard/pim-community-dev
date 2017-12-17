@@ -8,7 +8,6 @@ use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
-use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductId;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductRepository;
 

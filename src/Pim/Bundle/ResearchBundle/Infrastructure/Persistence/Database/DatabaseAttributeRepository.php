@@ -9,14 +9,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeRepository;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyId;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyRepository;
-use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
-use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductId;
-use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
-use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductRepository;
 
 class DatabaseAttributeRepository implements AttributeRepository
 {

@@ -2,27 +2,16 @@
 
 namespace Pim\Bundle\ResearchBundle\tests\integration\Infrastructure\Persistence\Database;
 
-use Akeneo\Test\Integration\Configuration;
-use Akeneo\Test\IntegrationTestsBundle\Loader\DatabaseSchemaHandler;
 use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
-use Pim\Bundle\ApiBundle\tests\integration\ApiTestCase;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyId;
-use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductId;
-use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
-use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseFamilyRepository;
-use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseProductRepository;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\HttpFoundation\Response;
 
 class DatabaseFamilyRepositoryTestCase extends KernelTestCase
 {
@@ -119,7 +108,7 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         Assert::assertNull($family);
     }
 
-    private function persistFamilyInDatabase(Family $family)
+    private function persistFamilyInDatabase(Family $family): void
     {
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
 
