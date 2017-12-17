@@ -3,6 +3,7 @@ parameters:
     pim_research.infrastructure.persistence.database.database_product_repository.class:  Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseProductRepository
     pim_research.infrastructure.persistence.database.database_attribute_repository.class:  Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseAttributeRepository
     pim_research.infrastructure.persistence.database.database_locale_repository.class:  Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseLocaleRepository
+    pim_research.infrastructure.persistence.database.database_currency_repository.class:  Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseCurrencyRepository
 
 services:
     pim_research.domain_model.family.family_repository:
@@ -22,5 +23,10 @@ services:
 
     pim_research.domain_model.locale.locale_repository:
         class: '%pim_research.infrastructure.persistence.database.database_locale_repository.class%'
+        arguments:
+            - '@doctrine.orm.entity_manager'
+
+    pim_research.domain_model.currency.currency_repository:
+        class: '%pim_research.infrastructure.persistence.database.database_currency_repository.class%'
         arguments:
             - '@doctrine.orm.entity_manager'

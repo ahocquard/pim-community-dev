@@ -15,7 +15,7 @@ class PimResearchExtension extends Extension
     public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
-        $loader->load('../services.yml');
+        $loader->load('../repositories.yml');
         $loader->load('../controllers.yml');
         $loader->load('../types.yml');
     }

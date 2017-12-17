@@ -22,7 +22,7 @@ class InMemoryLocaleRepositorySpec extends ObjectBehavior
         $this->shouldHaveType(InMemoryLocaleRepository::class);
     }
 
-    function it_gets_an_locale_with_code($locale1)
+    function it_gets_a_locale_with_code($locale1)
     {
         $this->withCode(LocaleCode::createFromString('locale_code_1'))->shouldReturn($locale1);
     }
