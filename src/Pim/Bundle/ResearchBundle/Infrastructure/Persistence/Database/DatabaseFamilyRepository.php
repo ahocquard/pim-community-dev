@@ -32,9 +32,11 @@ class DatabaseFamilyRepository implements FamilyRepository
     public function withCode(FamilyCode $familyCode): ?Family
     {
         $sql = <<<SQL
-SELECT f.created, f.updated, a.code as attribute_code
+SELECT f.created, f.updated, a.code, a_label.code as attribute_as_label_code
 FROM pim_catalog_family f
-LEFT JOIN pim_catalog_attribute a on a.id = f.label_attribute_id
+JOIN pim_catalog_family_attribute fa on fa.family_id = f.id
+JOIN pim_catalog_attribute a on a.id = fa.attribute_id
+LEFT JOIN pim_catalog_attribute a_label on a_label.id = f.label_attribute_id
 WHERE f.code = :code
 SQL;
 
@@ -51,12 +53,13 @@ SQL;
 
         $created = Type::getType(Type::DATETIME)->convertToPhpValue($row['created'], $platform);
         $updated = Type::getType(Type::DATETIME)->convertToPhpValue($row['updated'], $platform);
-        $attributeCode = Type::getType(Type::STRING)->convertToPhpValue($row['attribute_code'], $platform);
+        $attributeCode = Type::getType(Type::STRING)->convertToPhpValue($row['attribute_as_label_code'], $platform);
 
         return new Family(
             $familyCode,
             $created,
             $updated,
+            [],
             null !== $attributeCode ? AttributeCode::createFromString($attributeCode) : null
         );
     }

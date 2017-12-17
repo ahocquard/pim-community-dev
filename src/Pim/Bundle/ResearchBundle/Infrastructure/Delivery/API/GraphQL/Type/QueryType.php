@@ -53,17 +53,7 @@ class QueryType extends ObjectType
                     'resolve' => function($root, $args) {
                         return $this->familyRepository->withCode(FamilyCode::createFromString($args['code']));
                     }
-                ],
-                'echo' => [
-                    'type' => Type::string(),
-                    'args' => [
-                        'message' => ['type' => Type::string()],
-                    ],
-                    'resolve' => function ($root, $args) {
-                        return $args['message'];
-                    }
-                ],
-
+                ]
             ]
         ];
         parent::__construct($config);

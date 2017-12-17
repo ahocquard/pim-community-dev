@@ -7,6 +7,7 @@ use GraphQL\Type\Schema;
 use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\QueryType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class GraphQLController
 {
@@ -22,7 +23,7 @@ class GraphQLController
     }
 
     /**
-     * @return JsonResponse
+     * @return Response
      */
     public function handleGraphQLRequest(Request $request)
     {

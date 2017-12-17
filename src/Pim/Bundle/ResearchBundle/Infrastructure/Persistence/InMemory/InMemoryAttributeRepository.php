@@ -13,9 +13,21 @@ class InMemoryAttributeRepository implements AttributeRepository
     /** @var Attribute[] */
     private $storage = [];
 
-    public function withCode(AttributeCode $familyCode): ?Attribute
+    public function withCode(AttributeCode $attributeCode): ?Attribute
     {
-        return $this->storage[$familyCode->getValue()] ?? null;
+        return $this->storage[$attributeCode->getValue()] ?? null;
+    }
+
+    public function withCodes(array $attributeCodes): array
+    {
+        $attributes = [];
+        foreach ($attributeCodes as $attributeCode) {
+            if (isset($this->storage[$attributeCode->getValue()])) {
+                $attributes[] = $this->storage[$attributeCode->getValue()];
+            }
+        }
+
+        return $attributes;
     }
 
     public function add(Attribute $attribute): void

@@ -7,6 +7,7 @@ use Akeneo\Test\IntegrationTestsBundle\Loader\DatabaseSchemaHandler;
 use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ApiBundle\tests\integration\ApiTestCase;
+use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyId;
@@ -14,6 +15,7 @@ use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductId;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
 use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseProductRepository;
+use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -28,13 +30,18 @@ class DatabaseProductRepositoryTestCase extends KernelTestCase
     protected function setUp()
     {
         static::bootKernel(['debug' => false]);
-        $databaseSchemaHandler = new DatabaseSchemaHandler(static::$kernel);
-        $databaseSchemaHandler->reset();
+        (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
 
         $family = new Family(
             FamilyCode::createFromString('family_code'),
             new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
-            new \DateTimeImmutable('2017-05-08T00:00:00+00:00')
+            new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
+            [
+                AttributeCode::createFromString('attribute_code_as_label'),
+                AttributeCode::createFromString('attribute_code_1'),
+                AttributeCode::createFromString('attribute_code_2'),
+            ],
+            AttributeCode::createFromString('attribute_code_as_label')
         );
 
         $product = new Product(
@@ -75,8 +82,8 @@ class DatabaseProductRepositoryTestCase extends KernelTestCase
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
 
         $sql = <<<SQL
-INSERT INTO pim_catalog_family (code, created, updated)
-VALUES (:code, :created, :updated)
+            INSERT INTO pim_catalog_family (code, created, updated)
+            VALUES (:code, :created, :updated)
 SQL;
 
         $stmt = $entityManager->getConnection()->prepare($sql);
@@ -91,10 +98,10 @@ SQL;
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
 
         $sql = <<<SQL
-INSERT INTO pim_catalog_product (identifier, created, updated, is_enabled, raw_values, product_type, family_id)
-SELECT :identifier, :created, :updated, :is_enabled, "{}", "product", id
-FROM pim_catalog_family
-WHERE code = :family_code
+            INSERT INTO pim_catalog_product (identifier, created, updated, is_enabled, raw_values, product_type, family_id)
+            SELECT :identifier, :created, :updated, :is_enabled, "{}", "product", id
+            FROM pim_catalog_family
+            WHERE code = :family_code
 SQL;
 
         $stmt = $entityManager->getConnection()->prepare($sql);

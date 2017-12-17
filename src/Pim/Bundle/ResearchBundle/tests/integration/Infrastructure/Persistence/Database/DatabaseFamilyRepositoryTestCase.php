@@ -17,6 +17,7 @@ use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductId;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
 use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseFamilyRepository;
 use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseProductRepository;
+use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -31,28 +32,60 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
     protected function setUp()
     {
         static::bootKernel(['debug' => false]);
-        $databaseSchemaHandler = new DatabaseSchemaHandler(static::$kernel);
-        $databaseSchemaHandler->reset();
+        (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
 
         $family = new Family(
             FamilyCode::createFromString('family_code'),
             new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
             new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
-            AttributeCode::createFromString('attribute_code')
+            [
+                AttributeCode::createFromString('attribute_as_label_code'),
+                AttributeCode::createFromString('attribute_code_1'),
+                AttributeCode::createFromString('attribute_code_2'),
+            ],
+            AttributeCode::createFromString('attribute_as_label_code')
         );
 
-        $attribute = new Attribute(
-            AttributeCode::createFromString('attribute_code'),
+        $familyWithoutAttributeAsLabel = new Family(
+            FamilyCode::createFromString('family_code_without_label'),
+            new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
+            new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
+            [
+                AttributeCode::createFromString('attribute_code_1'),
+                AttributeCode::createFromString('attribute_code_2'),
+            ],
+            null
+        );
+
+        $attributeAsLabel = new Attribute(
+            AttributeCode::createFromString('attribute_as_label_code'),
             'pim_catalog_text',
             false,
             true
         );
 
-        $this->persistAttributeInDatabase($attribute);
+        $attribute1 = new Attribute(
+            AttributeCode::createFromString('attribute_code_1'),
+            'pim_catalog_text',
+            false,
+            true
+        );
+
+        $attribute2 = new Attribute(
+            AttributeCode::createFromString('attribute_code_2'),
+            'pim_catalog_text',
+            false,
+            true
+        );
+
+        $this->persistAttributeInDatabase($attributeAsLabel);
+        $this->persistAttributeInDatabase($attribute1);
+        $this->persistAttributeInDatabase($attribute2);
         $this->persistFamilyInDatabase($family);
+        $this->persistFamilyInDatabase($familyWithoutAttributeAsLabel);
     }
 
-    public function test_with_code_on_persisted_family()
+    public function test_with_code_on_persisted_family_with_attribute_as_label()
     {
         $repository = static::$kernel->getContainer()->get('pim_research.domain_model.family.family_repository');
 
@@ -61,7 +94,21 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         Assert::assertEquals('family_code', $family->code()->getValue());
         Assert::assertEquals(new \DateTime('2017-05-07T00:00:00+00:00'), $family->created());
         Assert::assertEquals(new \DateTime('2017-05-08T00:00:00+00:00'), $family->updated());
-        Assert::assertEquals('attribute_code', $family->attributeAsLabel()->getValue());
+        Assert::assertTrue($family->hasAttributeAsLabel());
+        Assert::assertEquals('attribute_as_label_code', $family->attributeAsLabelCode()->getValue());
+    }
+
+    public function test_with_code_on_persisted_family_without_attribute_as_label()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.family.family_repository');
+
+        $family = $repository->withCode(FamilyCode::createFromString('family_code_without_label'));
+        Assert::assertNotNull($family);
+        Assert::assertEquals('family_code_without_label', $family->code()->getValue());
+        Assert::assertEquals(new \DateTime('2017-05-07T00:00:00+00:00'), $family->created());
+        Assert::assertEquals(new \DateTime('2017-05-08T00:00:00+00:00'), $family->updated());
+        Assert::assertFalse($family->hasAttributeAsLabel());
+        Assert::assertNull($family->attributeAsLabelCode());
     }
 
     public function test_with_code_on_non_existing_family()
@@ -76,14 +123,10 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
     {
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
 
-        $sql = <<<SQL
-SELECT id FROM pim_catalog_attribute WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $family->attributeAsLabel()->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-        $attributeAsLabelId = $row['id'];
+        $attributeAsLabelId = null;
+        if ($family->hasAttributeAsLabel()) {
+            $attributeAsLabelId = $this->attributeIdFromCode($family->attributeAsLabelCode());
+        }
 
         $sql = <<<SQL
 INSERT INTO pim_catalog_family (code, created, updated, label_attribute_id)
@@ -96,39 +139,52 @@ SQL;
         $stmt->bindValue('updated', $family->updated(), Type::DATETIME);
         $stmt->bindValue('label_attribute_id', $attributeAsLabelId, Type::INTEGER);
         $stmt->execute();
+
+        $familyId = $this->familyIdFromCode($family->code());
+        foreach ($family->attributeCodes() as $attributeCode) {
+            $attributeId = $this->attributeIdFromCode($attributeCode);
+            $sql = <<<SQL
+            INSERT INTO pim_catalog_family_attribute (family_id, attribute_id)
+VALUES (:family_id, :attribute_id)
+SQL;
+            $stmt = $entityManager->getConnection()->prepare($sql);
+            $stmt->bindValue('family_id', $familyId, Type::INTEGER);
+            $stmt->bindValue('attribute_id', $attributeId, Type::INTEGER);
+            $stmt->execute();
+        }
     }
 
-    private function persistAttributeInDatabase(Attribute $attribute)
+    private function persistAttributeInDatabase(Attribute $attribute): void
     {
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
 
         $sql = <<<SQL
-INSERT INTO pim_catalog_attribute (
-    code, 
-    attribute_type, 
-    is_localizable,
-    is_scopable, 
-    sort_order, 
-    is_required,
-    is_unique,
-    entity_type,
-    backend_type,
-    created,
-    updated
-)
-VALUES (
-    :code,
-    :attribute_type,
-    :is_localizable,
-    :is_scopable,
-    :sort_order,
-    :is_required,
-    :is_unique,
-    :entity_type,
-    :backend_type,
-    :created,
-    :updated
-)
+            INSERT INTO pim_catalog_attribute (
+                code, 
+                attribute_type, 
+                is_localizable,
+                is_scopable, 
+                sort_order, 
+                is_required,
+                is_unique,
+                entity_type,
+                backend_type,
+                created,
+                updated
+            )
+            VALUES (
+                :code,
+                :attribute_type,
+                :is_localizable,
+                :is_scopable,
+                :sort_order,
+                :is_required,
+                :is_unique,
+                :entity_type,
+                :backend_type,
+                :created,
+                :updated
+            )
 SQL;
 
         $stmt = $entityManager->getConnection()->prepare($sql);
@@ -139,10 +195,40 @@ SQL;
         $stmt->bindValue('sort_order', 1, Type::INTEGER);
         $stmt->bindValue('is_required', true, Type::BOOLEAN);
         $stmt->bindValue('is_unique', true, Type::BOOLEAN);
-        $stmt->bindValue('entity_type', 'Pim\Component\Catalog\Model\Product\'', Type::STRING);
+        $stmt->bindValue('entity_type', 'Pim\Component\Catalog\Model\Product', Type::STRING);
         $stmt->bindValue('backend_type', 'text', Type::STRING);
         $stmt->bindValue('created', new \DateTime(), Type::DATETIME);
         $stmt->bindValue('updated', new \DateTime(), Type::DATETIME);
         $stmt->execute();
+    }
+
+    private function attributeIdFromCode(AttributeCode $attributeCode): string
+    {
+        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+
+        $sql = <<<SQL
+            SELECT id FROM pim_catalog_attribute WHERE code = :code
+SQL;
+        $stmt = $entityManager->getConnection()->prepare($sql);
+        $stmt->bindValue('code', $attributeCode->getValue(), Type::STRING);
+        $stmt->execute();
+        $row = $stmt->fetch();
+
+        return $row['id'];
+    }
+
+    private function familyIdFromCode(FamilyCode $familyCode): string
+    {
+        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+
+        $sql = <<<SQL
+            SELECT id FROM pim_catalog_family WHERE code = :code
+SQL;
+        $stmt = $entityManager->getConnection()->prepare($sql);
+        $stmt->bindValue('code', $familyCode->getValue(), Type::STRING);
+        $stmt->execute();
+        $row = $stmt->fetch();
+
+        return $row['id'];
     }
 }

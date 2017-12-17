@@ -18,18 +18,26 @@ class Family
     private $updated;
 
     /** @var AttributeCode */
-    private $attributeAsLabel;
+    private $attributeAsLabelCode;
+
+    /** @var AttributeCode[] */
+    private $attributeCodes = [];
 
     public function __construct(
         FamilyCode $code,
         \DateTimeInterface $created,
         \DateTimeInterface $updated,
-        ?AttributeCode $attributeAsLabel
+        array $attributeCodes,
+        ?AttributeCode $attributeAsLabelCode
     ) {
         $this->code = $code;
-        $this->created = $created;
-        $this->updated = $updated;
-        $this->attributeAsLabel = $attributeAsLabel;
+        $this->created = $created instanceof \DateTimeImmutable ? $created : \DateTimeImmutable::createFromMutable($created);
+        $this->updated = $updated instanceof \DatetimeImmutable ? $updated : \DateTimeImmutable::createFromMutable($updated);
+        $this->attributeAsLabelCode = $attributeAsLabelCode;
+
+        $this->attributeCodes = (function(AttributeCode ...$attributeCode) {
+            return $attributeCode;
+        })(...$attributeCodes);
     }
 
     public function code(): FamilyCode
@@ -47,8 +55,18 @@ class Family
         return $this->updated;
     }
 
-    public function attributeAsLabel(): ?AttributeCode
+    public function attributeCodes(): array
     {
-        return $this->attributeAsLabel;
+        return $this->attributeCodes;
+    }
+
+    public function attributeAsLabelCode(): ?AttributeCode
+    {
+        return $this->attributeAsLabelCode;
+    }
+
+    public function hasAttributeAsLabel(): bool
+    {
+        return null !== $this->attributeAsLabelCode;
     }
 }

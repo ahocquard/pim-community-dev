@@ -30,12 +30,12 @@ class LoadFixtures
 
     public function __invoke(): void
     {
-        $this->container->set('pim_research.domain_model.attribute.attribute_repository', $this->getAttributeRepository());
-        $this->container->set('pim_research.domain_model.family.family_repository', $this->getFamilyRepository());
-        $this->container->set('pim_research.domain_model.product.product_repository', $this->getProductRepository());
+        $this->container->set('pim_research.domain_model.attribute.attribute_repository', $this->attributeRepository());
+        $this->container->set('pim_research.domain_model.family.family_repository', $this->familyRepository());
+        $this->container->set('pim_research.domain_model.product.product_repository', $this->productRepository());
     }
 
-    private function getAttributeRepository(): AttributeRepository
+    private function attributeRepository(): AttributeRepository
     {
         $repository = new InMemoryAttributeRepository();
 
@@ -48,10 +48,19 @@ class LoadFixtures
             )
         );
 
+        $repository->add(
+            $attribute = new Attribute(
+                AttributeCode::createFromString('attribute_as_label_code'),
+                'pim_catalog_text',
+                false,
+                true
+            )
+        );
+
         return $repository;
     }
 
-    private function getFamilyRepository(): FamilyRepository
+    private function familyRepository(): FamilyRepository
     {
         $repository = new InMemoryFamilyRepository();
         $repository->add(
@@ -59,14 +68,18 @@ class LoadFixtures
                 FamilyCode::createFromString('family_code'),
                 new \DateTimeImmutable('2017-05-07T00:00:00+01:00'),
                 new \DateTimeImmutable('2017-05-08T00:00:00+01:00'),
-                AttributeCode::createFromString('attribute_code')
+                [
+                    AttributeCode::createFromString('attribute_as_label_code'),
+                    AttributeCode::createFromString('attribute_code'),
+                ],
+                AttributeCode::createFromString('attribute_as_label_code')
             )
         );
 
         return $repository;
     }
 
-    private function getProductRepository(): ProductRepository
+    private function productRepository(): ProductRepository
     {
         $repository = new InMemoryProductRepository();
 

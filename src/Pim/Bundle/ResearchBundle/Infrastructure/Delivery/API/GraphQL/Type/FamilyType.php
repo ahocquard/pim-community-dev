@@ -23,6 +23,7 @@ class FamilyType extends ObjectType
                     'code' => Type::string(),
                     'created' => Type::string(),
                     'updated' => Type::string(),
+                    'attributes' => Type::listOf($types->get(AttributeType::class)),
                     'attribute_as_label' => $types->get(AttributeType::class)
                 ];
             },
@@ -34,8 +35,10 @@ class FamilyType extends ObjectType
                         return $family->created()->format(\DateTime::ISO8601);
                     case 'updated':
                         return $family->updated()->format(\DateTime::ISO8601);
+                    case 'attributes':
+                        return $attributeRepository->withCodes($family->attributeCodes());
                     case 'attribute_as_label':
-                        return $attributeRepository->withCode($family->attributeAsLabel());
+                        return $attributeRepository->withCode($family->attributeAsLabelCode());
                     default:
                         return null;
                 }

@@ -49,6 +49,52 @@ class DatabaseAttributeRepositorySpec extends ObjectBehavior
             );
     }
 
+    function it_gets_attributes_with_codes($connection, Statement $stmt)
+    {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
+        $connection->prepare(Argument::cetera())->willReturn($stmt);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['attribute_code_1', 'attribute_code_2']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([
+            [
+                'code' => 'attribute_code_1',
+                'attribute_type' => 'pim_catalog_text',
+                'is_localizable' => '1',
+                'is_scopable' => '0'
+            ],
+            [
+                'code' => 'attribute_code_2',
+                'attribute_type' => 'pim_catalog_boolean',
+                'is_localizable' => '0',
+                'is_scopable' => '1'
+            ]
+        ]);
+
+        $this
+            ->withCodes([
+                AttributeCode::createFromString('attribute_code_1'),
+                AttributeCode::createFromString('attribute_code_2')
+            ])
+            ->shouldBeLike([
+                new Attribute(
+                    AttributeCode::createFromString('attribute_code_1'),
+                    'pim_catalog_text',
+                    true,
+                    false
+                ),
+                new Attribute(
+                    AttributeCode::createFromString('attribute_code_2'),
+                    'pim_catalog_boolean',
+                    false,
+                    true
+                )
+            ]);
+    }
+
     function it_returns_null_when_attribute_is_not_found($connection, Statement $stmt)
     {
         $connection->prepare(Argument::cetera())->willReturn($stmt);
