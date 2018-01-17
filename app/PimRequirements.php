@@ -23,7 +23,7 @@ class PimRequirements extends SymfonyRequirements
     const REQUIRED_CURL_VERSION = '7.0';
     const REQUIRED_ICU_VERSION = '4.2';
     const LOWEST_REQUIRED_MYSQL_VERSION = '5.7.0';
-    const GREATEST_REQUIRED_MYSQL_VERSION = '5.8.0';
+    const GREATEST_REQUIRED_MYSQL_VERSION = '8.0.10';
 
     const REQUIRED_EXTENSIONS = [
         'apcu',
@@ -243,7 +243,8 @@ class PimRequirements extends SymfonyRequirements
     {
         return new PDO(
             sprintf(
-                'mysql:host=%s',
+                'mysql:port=%s;host=%s',
+                $parameters['parameters']['database_port'],
                 $parameters['parameters']['database_host']
             ),
             $parameters['parameters']['database_user'],
