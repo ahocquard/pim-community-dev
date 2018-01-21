@@ -29,7 +29,11 @@ class DatabaseChannelRepository implements ChannelRepository
     public function withCode(ChannelCode $channelCode): ?Channel
     {
         $sql = <<<SQL
-            SELECT cu.code as currency_code, l.code as locale_code, ct.locale as locale_of_label, ct.label
+            SELECT 
+                cu.code as currency_code, 
+                l.code as locale_code,
+                ct.locale as locale_of_label,
+                ct.label
             FROM pim_catalog_channel c
             LEFT JOIN pim_catalog_channel_currency cc on cc.channel_id = c.id
             LEFT JOIN pim_catalog_currency cu on cu.id = cc.currency_id
@@ -58,6 +62,7 @@ SQL;
                 $currencyCode = Type::getType(Type::STRING)->convertToPhpValue($row['currency_code'], $platform);
                 $currencyCodes[$currencyCode] = CurrencyCode::createFromString($currencyCode);
             }
+
             if (isset($row['locale_code'])) {
                 $localeCode = Type::getType(Type::STRING)->convertToPhpValue($row['locale_code'], $platform);
                 $localeCodes[$localeCode] = LocaleCode::createFromString($localeCode);

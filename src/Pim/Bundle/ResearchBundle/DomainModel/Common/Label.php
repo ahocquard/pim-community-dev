@@ -24,7 +24,7 @@ class Label
         $this->value = $value;
     }
 
-    public static function createFromLocaleCode(LocaleCode $localeCode, string $label) {
+    public static function createFromLocaleCode(LocaleCode $localeCode, string $label): Label {
         return new static($localeCode, $label);
     }
 

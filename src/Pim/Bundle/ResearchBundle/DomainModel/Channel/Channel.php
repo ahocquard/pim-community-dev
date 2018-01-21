@@ -18,7 +18,7 @@ class Channel
     /** @var array */
     private $currencyCodes;
 
-    /** @var array */
+    /** @var ChannelLabel[] */
     private $labels;
 
     /**
