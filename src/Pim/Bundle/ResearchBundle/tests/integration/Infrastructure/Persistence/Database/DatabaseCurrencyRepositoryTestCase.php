@@ -6,6 +6,7 @@ use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\Currency;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyCode;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\CurrencyLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -17,7 +18,8 @@ class DatabaseCurrencyRepositoryTestCase extends KernelTestCase
     protected function setUp()
     {
         static::bootKernel(['debug' => false]);
-        (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
+        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+        (new ResetDatabase($entityManager))();
 
         $currency1 = new Currency(
             CurrencyCode::createFromString('EUR'),
@@ -29,8 +31,9 @@ class DatabaseCurrencyRepositoryTestCase extends KernelTestCase
             true
         );
 
-        $this->persistCurrencyInDatabase($currency1);
-        $this->persistCurrencyInDatabase($currency2);
+        $currencyLoader = new CurrencyLoader($entityManager);
+        $currencyLoader->load($currency1);
+        $currencyLoader->load($currency2);
     }
 
     public function test_with_code_on_persisted_currency()
@@ -78,26 +81,5 @@ class DatabaseCurrencyRepositoryTestCase extends KernelTestCase
             CurrencyCode::createFromString('foo'),
         ]);
         Assert::assertEquals([], $currencies);
-    }
-
-    private function persistCurrencyInDatabase(Currency $currency): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_currency(
-                code, 
-                is_activated
-            )
-            VALUES (
-                :code,
-                :is_activated
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $currency->code()->getValue(), Type::STRING);
-        $stmt->bindValue('is_activated', $currency->enabled(), Type::BOOLEAN);
-        $stmt->execute();
     }
 }

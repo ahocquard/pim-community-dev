@@ -10,6 +10,9 @@ use Pim\Bundle\ResearchBundle\DomainModel\Category\CategoryLabel;
 use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\Locale;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\AttributeLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\CategoryLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\LocaleLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -21,7 +24,8 @@ class DatabaseCategoryRepositoryTestCase extends KernelTestCase
     protected function setUp()
     {
         static::bootKernel(['debug' => false]);
-        (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
+        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+        (new ResetDatabase($entityManager))();
 
         $locale1 = new Locale(LocaleCode::createFromString('fr_FR'), true);
         $locale2 = new Locale(LocaleCode::createFromString('en_US'), true);
@@ -41,10 +45,13 @@ class DatabaseCategoryRepositoryTestCase extends KernelTestCase
             []
         );
 
-        $this->persistLocaleInDatabase($locale1);
-        $this->persistLocaleInDatabase($locale2);
-        $this->persistCategoryInDatabase($rootCategory);
-        $this->persistCategoryInDatabase($childCategory);
+        $localeLoader = new LocaleLoader($entityManager);
+        $localeLoader->load($locale1);
+        $localeLoader->load($locale2);
+
+        $categoryLoader = new CategoryLoader($entityManager);
+        $categoryLoader->load($rootCategory);
+        $categoryLoader->load($childCategory);
     }
 
     public function test_with_code_on_persisted_root_category()
@@ -80,98 +87,5 @@ class DatabaseCategoryRepositoryTestCase extends KernelTestCase
 
         $category = $repository->withCode(CategoryCode::createFromString('foo'));
         Assert::assertNull($category);
-    }
-
-    private function persistCategoryInDatabase(Category $category): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_category (
-                code,
-                parent_id, 
-                created,
-                root,
-                lvl,
-                lft,
-                rgt
-            )
-            VALUES (
-                :code,
-                :parent_id,
-                '2018-01-07 19:27:59',
-                0,
-                0,
-                0,
-                0
-            )
-SQL;
-
-        $parentId = null;
-        if (!$category->isRoot()) {
-            $parentId = $this->categoryIdFromCode($category->parentCode());
-        }
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $category->code()->getValue(), Type::STRING);
-        $stmt->bindValue('parent_id', $parentId, Type::INTEGER);
-        $stmt->execute();
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_category_translation (
-                foreign_key,
-                label,
-                locale 
-            )
-            VALUES (
-                :category_id_foreign_key,
-                :label,
-                :locale
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        foreach ($category->labels() as $label) {
-            $stmt->bindValue('category_id_foreign_key', $this->categoryIdFromCode($category->code()), Type::INTEGER);
-            $stmt->bindValue('label', $label->value(), Type::INTEGER);
-            $stmt->bindValue('locale', $label->localeCode()->getValue(), Type::INTEGER);
-            $stmt->execute();
-        }
-    }
-
-    private function persistLocaleInDatabase(Locale $locale): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_locale(
-                code, 
-                is_activated
-            )
-            VALUES (
-                :code,
-                :is_activated
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $locale->code()->getValue(), Type::STRING);
-        $stmt->bindValue('is_activated', $locale->enabled(), Type::BOOLEAN);
-        $stmt->execute();
-    }
-
-    private function categoryIdFromCode(CategoryCode $categoryCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_category WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $categoryCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
     }
 }

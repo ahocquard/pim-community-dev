@@ -16,6 +16,10 @@ use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyLabel;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\Locale;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\AttributeLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\ChannelLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\FamilyLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\LocaleLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -27,7 +31,8 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
     protected function setUp()
     {
         static::bootKernel(['debug' => false]);
-        (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
+        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+        (new ResetDatabase($entityManager))();
 
         $family = new Family(
             FamilyCode::createFromString('complete_family_code'),
@@ -164,18 +169,23 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         $enUS = new Locale(LocaleCode::createFromString('en_US'), false);
         $frFR = new Locale(LocaleCode::createFromString('fr_FR'), false);
 
-        $this->persistLocaleInDatabase($enUS);
-        $this->persistLocaleInDatabase($frFR);
-        $this->persistChannelInDatabase($ecommerce);
-        $this->persistChannelInDatabase($tablet);
-        $this->persistAttributeInDatabase($attributeAsLabel);
-        $this->persistAttributeInDatabase($attributeAsImage);
-        $this->persistAttributeInDatabase($attribute1);
-        $this->persistAttributeInDatabase($attribute2);
-        $this->persistFamilyInDatabase($family);
-        $this->persistFamilyInDatabase($familyWithoutAttributeAsLabel);
-        $this->persistFamilyInDatabase($familyWithoutAttributeAsImage);
-        $this->persistFamilyInDatabase($familyWithoutAttributeAndLabel);
+        $localeLoader = new LocaleLoader($entityManager);
+        $channelLoader = new ChannelLoader($entityManager);
+        $attributeLoader = new AttributeLoader($entityManager);
+        $familyLoader = new FamilyLoader($entityManager);
+
+        $localeLoader->load($enUS);
+        $localeLoader->load($frFR);
+        $channelLoader->load($ecommerce);
+        $channelLoader->load($tablet);
+        $attributeLoader->load($attributeAsLabel);
+        $attributeLoader->load($attributeAsImage);
+        $attributeLoader->load($attribute1);
+        $attributeLoader->load($attribute2);
+        $familyLoader->load($family);
+        $familyLoader->load($familyWithoutAttributeAsLabel);
+        $familyLoader->load($familyWithoutAttributeAsImage);
+        $familyLoader->load($familyWithoutAttributeAndLabel);
     }
 
     public function test_with_code_on_persisted_family_with_attribute_as_label()
@@ -219,9 +229,6 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         Assert::assertCount(1, $family->attributeRequirements()[1]->requiredAttributeCodes());
         Assert::assertEquals('attribute_code_1', $family->attributeRequirements()[1]->requiredAttributeCodes()[0]->getValue());
 
-        // check labels
-        Assert::assertCount(2, $family->labels());
-
         Assert::assertEquals('US label', $family->labels()[0]->value());
         Assert::assertEquals('FR label', $family->labels()[1]->value());
         Assert::assertEquals('en_US', $family->labels()[0]->localeCode()->getValue());
@@ -259,12 +266,6 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         Assert::assertEquals('ecommerce', $family->attributeRequirements()[0]->channelCode()->getValue());
         Assert::assertCount(1, $family->attributeRequirements()[0]->requiredAttributeCodes());
         Assert::assertEquals('attribute_code_1', $family->attributeRequirements()[0]->requiredAttributeCodes()[0]->getValue());
-
-        // check labels
-        Assert::assertCount(1, $family->labels());
-
-        Assert::assertEquals('US label', $family->labels()[0]->value());
-        Assert::assertEquals('en_US', $family->labels()[0]->localeCode()->getValue());
     }
 
     public function test_with_code_on_persisted_family_without_attribute_as_image()
@@ -298,12 +299,6 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
         Assert::assertEquals('ecommerce', $family->attributeRequirements()[0]->channelCode()->getValue());
         Assert::assertCount(1, $family->attributeRequirements()[0]->requiredAttributeCodes());
         Assert::assertEquals('attribute_code_1', $family->attributeRequirements()[0]->requiredAttributeCodes()[0]->getValue());
-
-        // check labels
-        Assert::assertCount(1, $family->labels());
-
-        Assert::assertEquals('US label', $family->labels()[0]->value());
-        Assert::assertEquals('en_US', $family->labels()[0]->localeCode()->getValue());
     }
 
     public function test_with_code_on_persisted_family_without_attribute_and_label()
@@ -330,357 +325,5 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
 
         $family = $repository->withCode(FamilyCode::createFromString('foo'));
         Assert::assertNull($family);
-    }
-
-    private function persistFamilyInDatabase(Family $family): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $attributeAsLabelId = null;
-        if ($family->hasAttributeAsLabel()) {
-            $attributeAsLabelId = $this->attributeIdFromCode($family->attributeAsLabelCode());
-        }
-
-        $attributeAsImageId = null;
-        if ($family->hasAttributeAsImage()) {
-            $attributeAsImageId = $this->attributeIdFromCode($family->attributeAsImageCode());
-        }
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_family (
-                code, 
-                created, 
-                updated, 
-                label_attribute_id, 
-                image_attribute_id
-            )
-            VALUES (
-                :code,
-                :created,
-                :updated,
-                :label_attribute_id,
-                :image_attribute_id
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $family->code()->getValue(), Type::STRING);
-        $stmt->bindValue('created', $family->created(), Type::DATETIME);
-        $stmt->bindValue('updated', $family->updated(), Type::DATETIME);
-        $stmt->bindValue('label_attribute_id', $attributeAsLabelId, Type::INTEGER);
-        $stmt->bindValue('image_attribute_id', $attributeAsImageId, Type::INTEGER);
-        $stmt->execute();
-
-        $familyId = $this->familyIdFromCode($family->code());
-        foreach ($family->attributeCodes() as $attributeCode) {
-            $attributeId = $this->attributeIdFromCode($attributeCode);
-            $sql = <<<SQL
-                INSERT INTO pim_catalog_family_attribute (
-                    family_id,
-                    attribute_id
-                )
-                VALUES (
-                    :family_id,
-                    :attribute_id
-                )
-SQL;
-            $stmt = $entityManager->getConnection()->prepare($sql);
-            $stmt->bindValue('family_id', $familyId, Type::INTEGER);
-            $stmt->bindValue('attribute_id', $attributeId, Type::INTEGER);
-            $stmt->execute();
-        }
-
-        foreach ($family->attributeRequirements() as $attributeRequirement) {
-            $sql = <<<SQL
-                INSERT INTO pim_catalog_attribute_requirement (
-                    family_id,
-                    attribute_id,
-                    channel_id,
-                    required
-                )
-                VALUES (
-                    :family_id,
-                    :attribute_id,
-                    :channel_id,
-                    1
-                )
-SQL;
-
-            $channelId = $this->channelIdFromCode($attributeRequirement->channelCode());
-            foreach ($attributeRequirement->requiredAttributeCodes() as $attributeCode) {
-                $stmt = $entityManager->getConnection()->prepare($sql);
-                $attributeId = $this->attributeIdFromCode($attributeCode);
-                $stmt->bindValue('family_id', $familyId, Type::INTEGER);
-                $stmt->bindValue('attribute_id', $attributeId, Type::INTEGER);
-                $stmt->bindValue('channel_id', $channelId, Type::INTEGER);
-                $stmt->execute();
-            }
-
-        }
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_family_translation (
-                foreign_key,
-                label,
-                locale 
-            )
-            VALUES (
-                :family_id_foreign_key,
-                :label,
-                :locale
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        foreach ($family->labels() as $label) {
-            $stmt->bindValue('family_id_foreign_key', $this->familyIdFromCode($family->code()), Type::INTEGER);
-            $stmt->bindValue('label', $label->value(), Type::INTEGER);
-            $stmt->bindValue('locale', $label->localeCode()->getValue(), Type::INTEGER);
-            $stmt->execute();
-        }
-    }
-
-    private function persistAttributeInDatabase(Attribute $attribute): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_attribute (
-                code, 
-                attribute_type, 
-                is_localizable,
-                is_scopable, 
-                sort_order, 
-                is_required,
-                is_unique,
-                entity_type,
-                backend_type,
-                created,
-                updated
-            )
-            VALUES (
-                :code,
-                :attribute_type,
-                :is_localizable,
-                :is_scopable,
-                :sort_order,
-                :is_required,
-                :is_unique,
-                :entity_type,
-                :backend_type,
-                :created,
-                :updated
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $attribute->code()->getValue(), Type::STRING);
-        $stmt->bindValue('attribute_type', $attribute->type(), Type::STRING);
-        $stmt->bindValue('is_localizable', $attribute->localizable(), Type::BOOLEAN);
-        $stmt->bindValue('is_scopable', $attribute->scopable(), Type::BOOLEAN);
-        $stmt->bindValue('sort_order', 1, Type::INTEGER);
-        $stmt->bindValue('is_required', true, Type::BOOLEAN);
-        $stmt->bindValue('is_unique', true, Type::BOOLEAN);
-        $stmt->bindValue('entity_type', 'Pim\Component\Catalog\Model\Product', Type::STRING);
-        $stmt->bindValue('backend_type', 'text', Type::STRING);
-        $stmt->bindValue('created', new \DateTime(), Type::DATETIME);
-        $stmt->bindValue('updated', new \DateTime(), Type::DATETIME);
-        $stmt->execute();
-    }
-
-    private function attributeIdFromCode(AttributeCode $attributeCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_attribute WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $attributeCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
-    }
-
-    private function familyIdFromCode(FamilyCode $familyCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_family WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $familyCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
-    }
-
-    private function persistChannelInDatabase(Channel $channel): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_channel (
-                code,
-                category_id, 
-                conversionUnits
-            )
-            VALUES (
-                :code,
-                null,
-                'a:0:{}'
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $channel->code()->getValue(), Type::STRING);
-        $stmt->execute();
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_channel_currency (
-                channel_id,
-                currency_id
-            )
-            VALUES (
-                :channel_id,
-                :currency_id
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        foreach ($channel->currencyCodes() as $currencyCode) {
-            $stmt->bindValue('channel_id', $this->channelIdFromCode($channel->code()), Type::INTEGER);
-            $stmt->bindValue('currency_id', $this->currencyIdFromCode($currencyCode), Type::INTEGER);
-            $stmt->execute();
-        }
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_channel_locale (
-                channel_id,
-                locale_id
-            )
-            VALUES (
-                :channel_id,
-                :locale_id
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        foreach ($channel->localeCodes() as $localeCode) {
-            $stmt->bindValue('channel_id', $this->channelIdFromCode($channel->code()), Type::INTEGER);
-            $stmt->bindValue('locale_id', $this->localeIdFromCode($localeCode), Type::INTEGER);
-            $stmt->execute();
-        }
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_channel_translation (
-                foreign_key,
-                label,
-                locale 
-            )
-            VALUES (
-                :channel_id_foreign_key,
-                :label,
-                :locale
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        foreach ($channel->labels() as $label) {
-            $stmt->bindValue('channel_id_foreign_key', $this->channelIdFromCode($channel->code()), Type::INTEGER);
-            $stmt->bindValue('label', $label->value(), Type::INTEGER);
-            $stmt->bindValue('locale', $label->localeCode()->getValue(), Type::INTEGER);
-            $stmt->execute();
-        }
-    }
-
-    private function persistLocaleInDatabase(Locale $locale): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_locale(
-                code, 
-                is_activated
-            )
-            VALUES (
-                :code,
-                :is_activated
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $locale->code()->getValue(), Type::STRING);
-        $stmt->bindValue('is_activated', $locale->enabled(), Type::BOOLEAN);
-        $stmt->execute();
-    }
-
-    private function persistCurrencyInDatabase(Currency $currency): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_currency(
-                code, 
-                is_activated
-            )
-            VALUES (
-                :code,
-                :is_activated
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $currency->code()->getValue(), Type::STRING);
-        $stmt->bindValue('is_activated', $currency->enabled(), Type::BOOLEAN);
-        $stmt->execute();
-    }
-
-    private function localeIdFromCode(LocaleCode $localeCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_locale WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $localeCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
-    }
-
-    private function currencyIdFromCode(CurrencyCode $currencyCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_currency WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $currencyCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
-    }
-
-    private function channelIdFromCode(ChannelCode $channelCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_channel WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $channelCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
     }
 }

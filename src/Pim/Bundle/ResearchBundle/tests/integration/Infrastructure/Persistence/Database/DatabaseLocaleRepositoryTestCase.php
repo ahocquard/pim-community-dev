@@ -6,6 +6,7 @@ use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\Locale;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\LocaleLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -17,7 +18,8 @@ class DatabaseLocaleRepositoryTestCase extends KernelTestCase
     protected function setUp()
     {
         static::bootKernel(['debug' => false]);
-        (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
+        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+        (new ResetDatabase($entityManager))();
 
         $locale1 = new Locale(
             LocaleCode::createFromString('locale_code_1'),
@@ -29,8 +31,9 @@ class DatabaseLocaleRepositoryTestCase extends KernelTestCase
             true
         );
 
-        $this->persistLocaleInDatabase($locale1);
-        $this->persistLocaleInDatabase($locale2);
+        $localeLoader = new LocaleLoader($entityManager);
+        $localeLoader->load($locale1);
+        $localeLoader->load($locale2);
     }
 
     public function test_with_code_on_persisted_locale()
@@ -78,26 +81,5 @@ class DatabaseLocaleRepositoryTestCase extends KernelTestCase
             LocaleCode::createFromString('foo'),
         ]);
         Assert::assertEquals([], $locales);
-    }
-
-    private function persistLocaleInDatabase(Locale $locale): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_locale(
-                code, 
-                is_activated
-            )
-            VALUES (
-                :code,
-                :is_activated
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $locale->code()->getValue(), Type::STRING);
-        $stmt->bindValue('is_activated', $locale->enabled(), Type::BOOLEAN);
-        $stmt->execute();
     }
 }

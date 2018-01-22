@@ -11,6 +11,9 @@ use Pim\Bundle\ResearchBundle\DomainModel\Currency\Currency;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\Locale;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\ChannelLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\CurrencyLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\LocaleLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -22,17 +25,22 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
     protected function setUp()
     {
         static::bootKernel(['debug' => false]);
-        (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
+        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+        (new ResetDatabase($entityManager))();
 
         $locale1 = new Locale(LocaleCode::createFromString('locale_code_1'), false);
         $locale2 = new Locale(LocaleCode::createFromString('locale_code_2'), true);
-        $this->persistLocaleInDatabase($locale1);
-        $this->persistLocaleInDatabase($locale2);
+
+        $localeLoader = new LocaleLoader($entityManager);
+        $localeLoader->load($locale1);
+        $localeLoader->load($locale2);
 
         $currency1 = new Currency(CurrencyCode::createFromString('EUR'), false);
         $currency2 = new Currency(CurrencyCode::createFromString('USD'), true);
-        $this->persistCurrencyInDatabase($currency1);
-        $this->persistCurrencyInDatabase($currency2);
+
+        $currencyLoader = new CurrencyLoader($entityManager);
+        $currencyLoader->load($currency1);
+        $currencyLoader->load($currency2);
 
         $completeChannel = new Channel(
             ChannelCode::createFromString('channel_code_complete'),
@@ -89,10 +97,11 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
             []
         );
 
-        $this->persistChannelInDatabase($completeChannel);
-        $this->persistChannelInDatabase($channelWithoutCurrency);
-        $this->persistChannelInDatabase($channelWithoutLocale);
-        $this->persistChannelInDatabase($channelWithoutLabel);
+        $channelLoader = new ChannelLoader($entityManager);
+        $channelLoader->load($completeChannel);
+        $channelLoader->load($channelWithoutCurrency);
+        $channelLoader->load($channelWithoutLocale);
+        $channelLoader->load($channelWithoutLabel);
     }
 
     public function test_with_code_on_persisted_channel()
@@ -173,171 +182,5 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
 
         $channel = $repository->withCode(ChannelCode::createFromString('foo'));
         Assert::assertNull($channel);
-    }
-
-    private function persistChannelInDatabase(Channel $channel): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_channel (
-                code,
-                category_id, 
-                conversionUnits
-            )
-            VALUES (
-                :code,
-                null,
-                'a:0:{}'
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $channel->code()->getValue(), Type::STRING);
-        $stmt->execute();
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_channel_currency (
-                channel_id,
-                currency_id
-            )
-            VALUES (
-                :channel_id,
-                :currency_id
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        foreach ($channel->currencyCodes() as $currencyCode) {
-            $stmt->bindValue('channel_id', $this->channelIdFromCode($channel->code()), Type::INTEGER);
-            $stmt->bindValue('currency_id', $this->currencyIdFromCode($currencyCode), Type::INTEGER);
-            $stmt->execute();
-        }
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_channel_locale (
-                channel_id,
-                locale_id
-            )
-            VALUES (
-                :channel_id,
-                :locale_id
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        foreach ($channel->localeCodes() as $localeCode) {
-            $stmt->bindValue('channel_id', $this->channelIdFromCode($channel->code()), Type::INTEGER);
-            $stmt->bindValue('locale_id', $this->localeIdFromCode($localeCode), Type::INTEGER);
-            $stmt->execute();
-        }
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_channel_translation (
-                foreign_key,
-                label,
-                locale 
-            )
-            VALUES (
-                :channel_id_foreign_key,
-                :label,
-                :locale
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        foreach ($channel->labels() as $label) {
-            $stmt->bindValue('channel_id_foreign_key', $this->channelIdFromCode($channel->code()), Type::INTEGER);
-            $stmt->bindValue('label', $label->value(), Type::INTEGER);
-            $stmt->bindValue('locale', $label->localeCode()->getValue(), Type::INTEGER);
-            $stmt->execute();
-        }
-    }
-
-    private function persistLocaleInDatabase(Locale $locale): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_locale(
-                code, 
-                is_activated
-            )
-            VALUES (
-                :code,
-                :is_activated
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $locale->code()->getValue(), Type::STRING);
-        $stmt->bindValue('is_activated', $locale->enabled(), Type::BOOLEAN);
-        $stmt->execute();
-    }
-
-    private function persistCurrencyInDatabase(Currency $currency): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_currency(
-                code, 
-                is_activated
-            )
-            VALUES (
-                :code,
-                :is_activated
-            )
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $currency->code()->getValue(), Type::STRING);
-        $stmt->bindValue('is_activated', $currency->enabled(), Type::BOOLEAN);
-        $stmt->execute();
-    }
-
-    private function localeIdFromCode(LocaleCode $localeCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_locale WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $localeCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
-    }
-
-    private function currencyIdFromCode(CurrencyCode $currencyCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_currency WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $currencyCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
-    }
-
-    private function channelIdFromCode(ChannelCode $channelCode): string
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            SELECT id FROM pim_catalog_channel WHERE code = :code
-SQL;
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $channelCode->getValue(), Type::STRING);
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        return $row['id'];
     }
 }
