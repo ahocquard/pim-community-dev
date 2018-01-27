@@ -8,7 +8,7 @@ use Pim\Bundle\ResearchBundle\DomainModel\Locale\Locale;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleRepository;
 
-class InMemoryLocaleRepository implements LocaleRepository
+class InMemoryLocaleRepository implements LocaleRepository, InMemoryRepository
 {
     /** @var Locale[] */
     private $storage = [];
@@ -30,8 +30,11 @@ class InMemoryLocaleRepository implements LocaleRepository
         return $locales;
     }
 
-    public function add(Locale $locale): void
+    public function add($locale): void
     {
+        if (!$locale instanceof Locale) {
+            throw new \invalidargumentexception('Locale class expected in argument.');
+        }
         $this->storage[$locale->code()->getValue()] = $locale;
     }
 }

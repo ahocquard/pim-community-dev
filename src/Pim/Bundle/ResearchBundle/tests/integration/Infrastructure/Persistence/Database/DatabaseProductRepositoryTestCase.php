@@ -4,11 +4,19 @@ namespace Pim\Bundle\ResearchBundle\tests\integration\Infrastructure\Persistence
 
 use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
+use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Family\AttributeRequirement;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyLabel;
+use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\AttributeLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\FamilyLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\ProductLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -20,18 +28,25 @@ class DatabaseProductRepositoryTestCase extends KernelTestCase
     protected function setUp()
     {
         static::bootKernel(['debug' => false]);
-        (new ResetDatabase(static::$kernel->getContainer()->get('doctrine.orm.entity_manager')))();
+        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+        (new ResetDatabase($entityManager))->byDeletingRows();
+
+        $attribute1 = new Attribute(
+            AttributeCode::createFromString('attribute_code_1'),
+            'pim_catalog_text',
+            false,
+            true
+        );
 
         $family = new Family(
             FamilyCode::createFromString('family_code'),
             new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
             new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
-            [
-                AttributeCode::createFromString('attribute_code_as_label'),
-                AttributeCode::createFromString('attribute_code_1'),
-                AttributeCode::createFromString('attribute_code_2'),
-            ],
-            AttributeCode::createFromString('attribute_code_as_label')
+            null,
+            null,
+            [AttributeCode::createFromString('attribute_code_1')],
+            [],
+            []
         );
 
         $product = new Product(
@@ -42,8 +57,14 @@ class DatabaseProductRepositoryTestCase extends KernelTestCase
             $family->code()
         );
 
-        $this->persistFamilyInDatabase($family);
-        $this->persistProductInDatabase($product);
+        $attributeLoader = new AttributeLoader($entityManager);
+        $attributeLoader->load($attribute1);
+
+        $familyLoader = new FamilyLoader($entityManager);
+        $familyLoader->load($family);
+
+        $productLoader = new ProductLoader($entityManager);
+        $productLoader->load($product);
     }
 
     public function test_with_identifier_on_persisted_product()
@@ -65,41 +86,5 @@ class DatabaseProductRepositoryTestCase extends KernelTestCase
 
         $product = $repository->withIdentifier(ProductIdentifier::createFromString('foo'));
         Assert::assertNull($product);
-    }
-
-    private function persistFamilyInDatabase(Family $family): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_family (code, created, updated)
-            VALUES (:code, :created, :updated)
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $family->code()->getValue(), Type::STRING);
-        $stmt->bindValue('created', $family->created(), Type::DATETIME);
-        $stmt->bindValue('updated', $family->updated(), Type::DATETIME);
-        $stmt->execute();
-    }
-
-    private function persistProductInDatabase(Product $product): void
-    {
-        $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-
-        $sql = <<<SQL
-            INSERT INTO pim_catalog_product (identifier, created, updated, is_enabled, raw_values, product_type, family_id)
-            SELECT :identifier, :created, :updated, :is_enabled, "{}", "product", id
-            FROM pim_catalog_family
-            WHERE code = :family_code
-SQL;
-
-        $stmt = $entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('identifier', $product->identifier()->getValue(), Type::STRING);
-        $stmt->bindValue('created', $product->created(), Type::DATETIME);
-        $stmt->bindValue('updated', $product->updated(), Type::DATETIME);
-        $stmt->bindValue('is_enabled', true, Type::BOOLEAN);
-        $stmt->bindValue('family_code', $product->family()->getValue(), Type::STRING);
-        $stmt->execute();
     }
 }

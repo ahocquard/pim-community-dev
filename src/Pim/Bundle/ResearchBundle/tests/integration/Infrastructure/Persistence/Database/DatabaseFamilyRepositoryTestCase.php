@@ -2,14 +2,11 @@
 
 namespace Pim\Bundle\ResearchBundle\tests\integration\Infrastructure\Persistence\Database;
 
-use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Channel\Channel;
 use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
-use Pim\Bundle\ResearchBundle\DomainModel\Currency\Currency;
-use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\AttributeRequirement;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
@@ -32,7 +29,7 @@ class DatabaseFamilyRepositoryTestCase extends KernelTestCase
     {
         static::bootKernel(['debug' => false]);
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-        (new ResetDatabase($entityManager))();
+        (new ResetDatabase($entityManager))->byDeletingRows();
 
         $family = new Family(
             FamilyCode::createFromString('complete_family_code'),

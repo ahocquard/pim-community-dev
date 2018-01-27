@@ -8,7 +8,7 @@ use Pim\Bundle\ResearchBundle\DomainModel\Currency\Currency;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyRepository;
 
-class InMemoryCurrencyRepository implements CurrencyRepository
+class InMemoryCurrencyRepository implements CurrencyRepository, InMemoryRepository
 {
     /** @var Currency[] */
     private $storage = [];
@@ -30,8 +30,11 @@ class InMemoryCurrencyRepository implements CurrencyRepository
         return $currencies;
     }
 
-    public function add(Currency $currency): void
+    public function add($currency): void
     {
+        if (!$currency instanceof Currency) {
+            throw new \invalidargumentexception('Currency class expected in argument.');
+        }
         $this->storage[$currency->code()->getValue()] = $currency;
     }
 }

@@ -8,7 +8,7 @@ use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeRepository;
 
-class InMemoryAttributeRepository implements AttributeRepository
+class InMemoryAttributeRepository implements AttributeRepository, InMemoryRepository
 {
     /** @var Attribute[] */
     private $storage = [];
@@ -30,8 +30,11 @@ class InMemoryAttributeRepository implements AttributeRepository
         return $attributes;
     }
 
-    public function add(Attribute $attribute): void
+    public function add($attribute): void
     {
+        if (!$attribute instanceof Attribute) {
+            throw new \InvalidArgumentException('Attribute class expected in argument.');
+        }
         $this->storage[$attribute->code()->getValue()] = $attribute;
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Pim\Bundle\ResearchBundle\tests\integration\Infrastructure\Persistence\Database;
 
-use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
@@ -19,7 +18,7 @@ class DatabaseAttributeRepositoryTestCase extends KernelTestCase
     {
         static::bootKernel(['debug' => false]);
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-        (new ResetDatabase($entityManager))();
+        (new ResetDatabase($entityManager))->byDeletingRows();
 
         $attribute1 = new Attribute(
             AttributeCode::createFromString('attribute_code_1'),

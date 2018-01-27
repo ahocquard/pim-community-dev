@@ -2,7 +2,6 @@
 
 namespace Pim\Bundle\ResearchBundle\tests\integration\Infrastructure\Persistence\Database;
 
-use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\Currency;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyCode;
@@ -19,7 +18,7 @@ class DatabaseCurrencyRepositoryTestCase extends KernelTestCase
     {
         static::bootKernel(['debug' => false]);
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-        (new ResetDatabase($entityManager))();
+        (new ResetDatabase($entityManager))->byDeletingRows();
 
         $currency1 = new Currency(
             CurrencyCode::createFromString('EUR'),

@@ -8,7 +8,7 @@ use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductRepository;
 
-class InMemoryProductRepository implements ProductRepository
+class InMemoryProductRepository implements ProductRepository, InMemoryRepository
 {
     /** @var Product[] */
     private $storage;
@@ -18,8 +18,11 @@ class InMemoryProductRepository implements ProductRepository
         return $this->storage[$productIdentifier->getValue()] ?? null;
     }
 
-    public function add(Product $product)
+    public function add($product)
     {
+        if (!$product instanceof Product) {
+            throw new \invalidargumentexception('Product class expected in argument.');
+        }
         $this->storage[$product->identifier()->getValue()] = $product;
     }
 }

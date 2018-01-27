@@ -16,7 +16,23 @@ class ResetDatabase
         $this->entityManager = $entityManager;
     }
 
-    public function __invoke(): void
+    public function byDeletingRows()
+    {
+        $connection = $this->entityManager->getConnection();
+        $schemaManager = $connection->getSchemaManager();
+        $tables = $schemaManager->listTables();
+        $sql = 'SET FOREIGN_KEY_CHECKS = 0;';
+
+        foreach($tables as $table) {
+            $sql .= sprintf('DELETE FROM %s ;', $table->getName());
+        }
+
+        $sql .= 'SET FOREIGN_KEY_CHECKS = 1;';
+        $stmt = $this->entityManager->getConnection()->prepare($sql);
+        $stmt->execute();
+    }
+
+    public function byTruncatingTable()
     {
         $connection = $this->entityManager->getConnection();
         $schemaManager = $connection->getSchemaManager();

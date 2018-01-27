@@ -2,15 +2,12 @@
 
 namespace Pim\Bundle\ResearchBundle\tests\integration\Infrastructure\Persistence\Database;
 
-use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ResearchBundle\DomainModel\Category\Category;
 use Pim\Bundle\ResearchBundle\DomainModel\Category\CategoryCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Category\CategoryLabel;
-use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\Locale;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
-use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\AttributeLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\CategoryLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\Database\LocaleLoader;
 use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
@@ -25,7 +22,7 @@ class DatabaseCategoryRepositoryTestCase extends KernelTestCase
     {
         static::bootKernel(['debug' => false]);
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-        (new ResetDatabase($entityManager))();
+        (new ResetDatabase($entityManager))->byDeletingRows();
 
         $locale1 = new Locale(LocaleCode::createFromString('fr_FR'), true);
         $locale2 = new Locale(LocaleCode::createFromString('en_US'), true);

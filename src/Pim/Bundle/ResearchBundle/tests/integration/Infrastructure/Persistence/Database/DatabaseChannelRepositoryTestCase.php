@@ -2,7 +2,6 @@
 
 namespace Pim\Bundle\ResearchBundle\tests\integration\Infrastructure\Persistence\Database;
 
-use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\Assert;
 use Pim\Bundle\ResearchBundle\DomainModel\Channel\Channel;
 use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
@@ -26,7 +25,7 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
     {
         static::bootKernel(['debug' => false]);
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
-        (new ResetDatabase($entityManager))();
+        (new ResetDatabase($entityManager))->byDeletingRows();
 
         $locale1 = new Locale(LocaleCode::createFromString('locale_code_1'), false);
         $locale2 = new Locale(LocaleCode::createFromString('locale_code_2'), true);

@@ -8,7 +8,7 @@ use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyRepository;
 
-class InMemoryFamilyRepository implements FamilyRepository
+class InMemoryFamilyRepository implements FamilyRepository, InMemoryRepository
 {
     /** @var Family[] */
     private $storage = [];
@@ -18,8 +18,11 @@ class InMemoryFamilyRepository implements FamilyRepository
         return $this->storage[$familyCode->getValue()] ?? null;
     }
 
-    public function add(Family $family): void
+    public function add($family): void
     {
+        if (!$family instanceof Family) {
+            throw new \invalidargumentexception('Family class expected in argument.');
+        }
         $this->storage[$family->code()->getValue()] = $family;
     }
 }
