@@ -16,7 +16,7 @@ class DatabaseAttributeRepositorySpec extends ObjectBehavior
 {
     function let(EntityManagerInterface $em, Connection $connection)
     {
-        $em->getConnection()->willreturn($connection);
+        $em->getConnection()->willReturn($connection);
         $this->beConstructedWith($em);
     }
 
@@ -29,12 +29,19 @@ class DatabaseAttributeRepositorySpec extends ObjectBehavior
     {
         $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'attribute_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
-        $stmt->fetch()->willReturn([
-            'attribute_type' => 'pim_catalog_text',
-            'is_localizable' => '1',
-            'is_scopable' => '0'
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['attribute_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([
+            [
+                'code' => 'attribute_code',
+                'attribute_type' => 'pim_catalog_text',
+                'is_localizable' => '1',
+                'is_scopable' => '0'
+            ]
         ]);
 
         $this
@@ -47,6 +54,23 @@ class DatabaseAttributeRepositorySpec extends ObjectBehavior
                     false
                 )
             );
+    }
+
+    function it_returns_null_when_attribute_is_not_found($connection, Statement $stmt)
+    {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
+        $connection->prepare(Argument::cetera())->willReturn($stmt);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['attribute_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([]);
+
+        $this
+            ->withCode(AttributeCode::createFromString('attribute_code'))
+            ->shouldReturn(null);
     }
 
     function it_gets_attributes_with_codes($connection, Statement $stmt)
@@ -95,15 +119,23 @@ class DatabaseAttributeRepositorySpec extends ObjectBehavior
             ]);
     }
 
-    function it_returns_null_when_attribute_is_not_found($connection, Statement $stmt)
+    function it_returns_an_empty_array_when_attributes_are_not_found($connection, Statement $stmt)
     {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'attribute_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
-        $stmt->fetch()->willReturn(false);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['attribute_code_1', 'attribute_code_2']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([]);
 
         $this
-            ->withCode(AttributeCode::createFromString('attribute_code'))
-            ->shouldReturn(null);
+            ->withCodes([
+                AttributeCode::createFromString('attribute_code_1'),
+                AttributeCode::createFromString('attribute_code_2')
+            ])
+            ->shouldReturn([]);
     }
 }

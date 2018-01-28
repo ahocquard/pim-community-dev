@@ -25,29 +25,9 @@ class DatabaseLocaleRepository implements LocaleRepository
 
     public function withCode(LocaleCode $localeCode): ?Locale
     {
-        $sql = <<<SQL
-            SELECT l.is_activated
-            FROM pim_catalog_locale l
-            WHERE l.code = :code
-SQL;
+        $locales = $this->withCodes([$localeCode]);
 
-        $stmt = $this->entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $localeCode->getValue());
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        if (false === $row) {
-            return null;
-        }
-
-        $platform = $this->entityManager->getConnection()->getDatabasePlatform();
-
-        $enabled = Type::getType(Type::BOOLEAN)->convertToPhpValue($row['is_activated'], $platform);
-
-        return new Locale(
-            $localeCode,
-            $enabled
-        );
+        return empty($locales) ? null : $locales[0];
     }
 
     public function withCodes(array $localeCodes): array

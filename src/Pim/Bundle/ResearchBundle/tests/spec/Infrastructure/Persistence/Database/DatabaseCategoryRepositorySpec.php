@@ -18,7 +18,7 @@ class DatabaseCategoryRepositorySpec extends ObjectBehavior
 {
     function let(EntityManagerInterface $em, Connection $connection)
     {
-        $em->getConnection()->willreturn($connection);
+        $em->getConnection()->willReturn($connection);
         $this->beConstructedWith($em);
     }
 
@@ -165,6 +165,6 @@ class DatabaseCategoryRepositorySpec extends ObjectBehavior
             ->withCodes([
                 CategoryCode::createFromString('foo'),
             ])
-            ->shouldBeLike([]);
+            ->shouldReturn([]);
     }
 }

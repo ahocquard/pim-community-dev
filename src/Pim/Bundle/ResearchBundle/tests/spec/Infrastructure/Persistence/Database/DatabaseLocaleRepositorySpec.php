@@ -29,10 +29,17 @@ class DatabaseLocaleRepositorySpec extends ObjectBehavior
     {
         $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'locale_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
-        $stmt->fetch()->willReturn([
-            'is_activated' => '1',
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['locale_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([
+            [
+                'code' => 'locale_code',
+                'is_activated' => '1',
+            ]
         ]);
 
         $this
@@ -85,13 +92,35 @@ class DatabaseLocaleRepositorySpec extends ObjectBehavior
 
     function it_returns_null_when_locale_is_not_found($connection, Statement $stmt)
     {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'locale_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
-        $stmt->fetch()->willReturn(false);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['locale_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([]);
 
         $this
             ->withCode(LocaleCode::createFromString('locale_code'))
             ->shouldReturn(null);
+    }
+
+    function it_returns_an_empty_array_when_locales_are_not_found($connection, Statement $stmt)
+    {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
+        $connection->prepare(Argument::cetera())->willReturn($stmt);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['locale_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([]);
+
+        $this
+            ->withCodes([LocaleCode::createFromString('locale_code')])
+            ->shouldReturn([]);
     }
 }

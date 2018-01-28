@@ -67,7 +67,6 @@ class DatabaseFamilyRepository implements FamilyRepository
                 GROUP BY f.id, c.code
             ) as attribute_requirements on attribute_requirements.family_attribute_id = f.id 
             WHERE f.code = :code
-            ;
 SQL;
 
         $stmt = $this->entityManager->getConnection()->prepare($sql);

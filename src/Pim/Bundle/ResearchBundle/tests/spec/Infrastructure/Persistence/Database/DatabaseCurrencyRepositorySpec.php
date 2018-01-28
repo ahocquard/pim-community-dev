@@ -16,7 +16,7 @@ class DatabaseCurrencyRepositorySpec extends ObjectBehavior
 {
     function let(EntityManagerInterface $em, Connection $connection)
     {
-        $em->getConnection()->willreturn($connection);
+        $em->getConnection()->willReturn($connection);
         $this->beConstructedWith($em);
     }
 
@@ -29,10 +29,17 @@ class DatabaseCurrencyRepositorySpec extends ObjectBehavior
     {
         $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'currency_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
-        $stmt->fetch()->willReturn([
-            'is_activated' => '1',
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['currency_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([
+            [
+                'code' => 'currency_code',
+                'is_activated' => '1',
+            ]
         ]);
 
         $this
@@ -85,13 +92,38 @@ class DatabaseCurrencyRepositorySpec extends ObjectBehavior
 
     function it_returns_null_when_currency_is_not_found($connection, Statement $stmt)
     {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'currency_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
-        $stmt->fetch()->willReturn(false);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['currency_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([]);
 
         $this
             ->withCode(CurrencyCode::createFromString('currency_code'))
             ->shouldReturn(null);
+    }
+
+    function it_returns_an_empty_array_when_currencies_are_not_found($connection, Statement $stmt)
+    {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
+        $connection->prepare(Argument::cetera())->willReturn($stmt);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['currency_code_1', 'currency_code_2']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([]);
+
+        $this
+            ->withCodes([
+                CurrencyCode::createFromString('currency_code_1'),
+                CurrencyCode::createFromString('currency_code_2')
+            ])
+            ->shouldReturn([]);
     }
 }
