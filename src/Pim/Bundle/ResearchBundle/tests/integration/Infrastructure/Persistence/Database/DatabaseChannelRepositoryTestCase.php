@@ -41,6 +41,87 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
         $currencyLoader->load($currency1);
         $currencyLoader->load($currency2);
 
+        $channelLoader = new ChannelLoader($entityManager);
+        $channels = $this->channelFixtures();
+        foreach ($channels as $channel) {
+            $channelLoader->load($channel);
+        }
+    }
+
+    public function test_with_code_on_persisted_channel()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
+
+        $channel = $repository->withCode(ChannelCode::createFromString('channel_code_complete'));
+        Assert::assertEquals($this->channelFixtures()['complete_channel'], $channel, '', 0.0, 10, true);
+    }
+
+    public function test_with_code_on_persisted_channel_without_currency()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
+
+        $channel = $repository->withCode(ChannelCode::createFromString('channel_code_without_currency'));
+        Assert::assertEquals($this->channelFixtures()['channel_without_currency'], $channel, '', 0.0, 10, true);
+    }
+
+    public function test_with_code_on_persisted_channel_without_locale()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
+
+        $channel = $repository->withCode(ChannelCode::createFromString('channel_code_without_locale'));
+        Assert::assertEquals($this->channelFixtures()['channel_without_locale'], $channel, '', 0.0, 10, true);
+    }
+
+    public function test_with_code_on_persisted_channel_without_label()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
+
+        $channel = $repository->withCode(ChannelCode::createFromString('channel_code_without_label'));
+        Assert::assertEquals($this->channelFixtures()['channel_without_label'], $channel, '', 0.0, 10, true);
+    }
+
+    public function test_with_code_on_non_existing_channel()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
+
+        $channel = $repository->withCode(ChannelCode::createFromString('foo'));
+        Assert::assertNull($channel);
+    }
+
+    public function test_with_codes_on_persisted_channels()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
+
+        $channels = $repository->withCodes([
+            ChannelCode::createFromString('channel_code_complete'),
+            ChannelCode::createFromString('channel_code_without_locale'),
+            ChannelCode::createFromString('channel_code_without_currency'),
+            ChannelCode::createFromString('channel_code_without_label'),
+            ChannelCode::createFromString('foo'),
+        ]);
+
+        $expectedChannels= $this->channelFixtures();
+
+        Assert::assertNotNull($channels);
+        Assert::assertCount(4, $channels);
+        Assert::assertEquals(array_values($expectedChannels), $channels, '', 0.0, 10, true);
+    }
+
+    public function test_with_codes_on_non_existing_channels()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
+
+        $channels = $repository->withCodes([
+            ChannelCode::createFromString('foo'),
+            ChannelCode::createFromString('baz')
+        ]);
+
+        Assert::assertNotNull($channels);
+        Assert::assertCount(0, $channels);
+    }
+
+    private function channelFixtures(): array
+    {
         $completeChannel = new Channel(
             ChannelCode::createFromString('channel_code_complete'),
             [
@@ -96,90 +177,11 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
             []
         );
 
-        $channelLoader = new ChannelLoader($entityManager);
-        $channelLoader->load($completeChannel);
-        $channelLoader->load($channelWithoutCurrency);
-        $channelLoader->load($channelWithoutLocale);
-        $channelLoader->load($channelWithoutLabel);
-    }
-
-    public function test_with_code_on_persisted_channel()
-    {
-        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
-
-        $channel = $repository->withCode(ChannelCode::createFromString('channel_code_complete'));
-        Assert::assertNotNull($channel);
-        Assert::assertEquals('channel_code_complete', $channel->code()->getValue());
-        Assert::assertCount(2, $channel->currencyCodes());
-        Assert::assertEquals('EUR', $channel->currencyCodes()[0]->getValue());
-        Assert::assertEquals('USD', $channel->currencyCodes()[1]->getValue());
-        Assert::assertCount(2, $channel->localeCodes());
-        Assert::assertEquals('locale_code_2', $channel->localeCodes()[0]->getValue());
-        Assert::assertEquals('locale_code_1', $channel->localeCodes()[1]->getValue());
-        Assert::assertCount(2, $channel->labels());
-        Assert::assertEquals('label_1', $channel->labels()[0]->value());
-        Assert::assertEquals('label_2', $channel->labels()[1]->value());
-        Assert::assertEquals('locale_code_1', $channel->labels()[0]->localeCode()->getValue());
-        Assert::assertEquals('locale_code_2', $channel->labels()[1]->localeCode()->getValue());
-    }
-
-    public function test_with_code_on_persisted_channel_without_currency()
-    {
-        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
-
-        $channel = $repository->withCode(ChannelCode::createFromString('channel_code_without_currency'));
-        Assert::assertNotNull($channel);
-        Assert::assertEquals('channel_code_without_currency', $channel->code()->getValue());
-        Assert::assertCount(0, $channel->currencyCodes());
-        Assert::assertCount(2, $channel->localeCodes());
-        Assert::assertEquals('locale_code_2', $channel->localeCodes()[0]->getValue());
-        Assert::assertEquals('locale_code_1', $channel->localeCodes()[1]->getValue());
-        Assert::assertCount(2, $channel->labels());
-        Assert::assertEquals('label_1', $channel->labels()[0]->value());
-        Assert::assertEquals('label_2', $channel->labels()[1]->value());
-        Assert::assertEquals('locale_code_1', $channel->labels()[0]->localeCode()->getValue());
-        Assert::assertEquals('locale_code_2', $channel->labels()[1]->localeCode()->getValue());
-    }
-
-    public function test_with_code_on_persisted_channel_without_locale()
-    {
-        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
-
-        $channel = $repository->withCode(ChannelCode::createFromString('channel_code_without_locale'));
-        Assert::assertNotNull($channel);
-        Assert::assertEquals('channel_code_without_locale', $channel->code()->getValue());
-        Assert::assertCount(2, $channel->currencyCodes());
-        Assert::assertEquals('EUR', $channel->currencyCodes()[0]->getValue());
-        Assert::assertEquals('USD', $channel->currencyCodes()[1]->getValue());
-        Assert::assertCount(0, $channel->localeCodes());
-        Assert::assertCount(2, $channel->labels());
-        Assert::assertEquals('label_1', $channel->labels()[0]->value());
-        Assert::assertEquals('label_2', $channel->labels()[1]->value());
-        Assert::assertEquals('locale_code_1', $channel->labels()[0]->localeCode()->getValue());
-        Assert::assertEquals('locale_code_2', $channel->labels()[1]->localeCode()->getValue());
-    }
-
-    public function test_with_code_on_persisted_channel_without_label()
-    {
-        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
-
-        $channel = $repository->withCode(ChannelCode::createFromString('channel_code_without_label'));
-        Assert::assertNotNull($channel);
-        Assert::assertEquals('channel_code_without_label', $channel->code()->getValue());
-        Assert::assertCount(2, $channel->currencyCodes());
-        Assert::assertEquals('EUR', $channel->currencyCodes()[0]->getValue());
-        Assert::assertEquals('USD', $channel->currencyCodes()[1]->getValue());
-        Assert::assertCount(2, $channel->localeCodes());
-        Assert::assertEquals('locale_code_1', $channel->localeCodes()[0]->getValue());
-        Assert::assertEquals('locale_code_2', $channel->localeCodes()[1]->getValue());
-        Assert::assertCount(0, $channel->labels());
-    }
-
-    public function test_with_code_on_non_existing_channel()
-    {
-        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.channel.channel_repository');
-
-        $channel = $repository->withCode(ChannelCode::createFromString('foo'));
-        Assert::assertNull($channel);
+        return [
+            'complete_channel' => $completeChannel,
+            'channel_without_locale' => $channelWithoutLocale,
+            'channel_without_label' => $channelWithoutLabel,
+            'channel_without_currency' => $channelWithoutCurrency,
+        ];
     }
 }

@@ -28,6 +28,13 @@ class DatabaseChannelRepository implements ChannelRepository
 
     public function withCode(ChannelCode $channelCode): ?Channel
     {
+        $channels = $this->withCodes([$channelCode]);
+
+        return empty($channels) ? null : $channels[0];
+    }
+
+    public function withCodes(array $channelCodes): array
+    {
         $sql = <<<SQL
 			SELECT 
 				c.code,
@@ -54,24 +61,42 @@ class DatabaseChannelRepository implements ChannelRepository
                 GROUP BY c.id
             ) as locales on locales.channel_locale_id = c.id
             LEFT JOIN pim_catalog_channel_translation ct on ct.foreign_key = c.id
-            WHERE c.code = :code
+            WHERE c.code IN (:codes)
             GROUP BY c.code
 SQL;
 
-        $stmt = $this->entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $channelCode->getValue());
-        $stmt->execute();
-        $rows = $stmt->fetchAll();
+        $connection = $this->entityManager->getConnection();
+        $codes = array_map(function(ChannelCode $channelCode) {
+            return $channelCode->getValue();
+        }, $channelCodes);
 
-        if (empty($rows)) {
-            return null;
-        }
-        $row = $rows[0];
+        $stmt = $connection->executeQuery($sql,
+            ['codes' => $codes],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        );
 
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
-        $currencyCodes = [];
+        $rows = $stmt->fetchAll();
 
+        $channels = [];
+        foreach ($rows as $row) {
+            $code = Type::getType(Type::STRING)->convertToPhpValue($row['code'], $platform);
+
+            $channels[] = new Channel(
+                ChannelCode::createFromString($code),
+                $this->hydrateLocaleCodes($row),
+                $this->hydrateCurrencyCodes($row),
+                $this->hydrateLabels($row)
+            );
+        }
+
+        return $channels;
+    }
+
+    private function hydrateCurrencyCodes(array $row): array
+    {
+        $currencyCodes = [];
         if (isset($row['currency_codes'])) {
             $decodedCurrencyCodes = json_decode($row['currency_codes'], true);
             if (null !== $decodedCurrencyCodes) {
@@ -81,6 +106,11 @@ SQL;
             }
         }
 
+        return $currencyCodes;
+    }
+
+    private function hydrateLocaleCodes(array $row): array
+    {
         $localeCodes = [];
         if (isset($row['locale_codes'])) {
             $decodedLocaleCodes = json_decode($row['locale_codes'], true);
@@ -91,6 +121,11 @@ SQL;
             }
         }
 
+        return $localeCodes;
+    }
+
+    private function hydrateLabels(array $row): array
+    {
         $labels =[];
         $decodedTranslations = json_decode($row['translations'], true);
         foreach ($decodedTranslations as $translation) {
@@ -99,11 +134,6 @@ SQL;
             }
         }
 
-        return new Channel(
-            $channelCode,
-            $localeCodes,
-            $currencyCodes,
-            $labels
-        );
+        return $labels;
     }
 }
