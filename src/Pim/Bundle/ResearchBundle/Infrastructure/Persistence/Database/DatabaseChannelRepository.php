@@ -29,18 +29,33 @@ class DatabaseChannelRepository implements ChannelRepository
     public function withCode(ChannelCode $channelCode): ?Channel
     {
         $sql = <<<SQL
-            SELECT 
-                cu.code as currency_code, 
-                l.code as locale_code,
-                ct.locale as locale_of_label,
-                ct.label
+			SELECT 
+				c.code,
+                currencies.currency_codes, 
+                locales.locale_codes,
+                JSON_ARRAYAGG(JSON_OBJECT('locale', ct.locale, 'label', ct.label)) as translations
             FROM pim_catalog_channel c
-            LEFT JOIN pim_catalog_channel_currency cc on cc.channel_id = c.id
-            LEFT JOIN pim_catalog_currency cu on cu.id = cc.currency_id
-            LEFT JOIN pim_catalog_channel_locale cl on cl.channel_id = c.id
-            LEFT JOIN pim_catalog_locale l on l.id = cl.locale_id
+			LEFT JOIN (
+                SELECT 
+                    c.id as channel_currency_id, 
+                    JSON_ARRAYAGG(cu.code) as currency_codes
+                FROM pim_catalog_channel c
+                JOIN pim_catalog_channel_currency cc on cc.channel_id = c.id
+				JOIN pim_catalog_currency cu on cu.id = cc.currency_id
+                GROUP BY c.id
+            ) as currencies on currencies.channel_currency_id = c.id
+			LEFT JOIN (
+                SELECT 
+                    c.id as channel_locale_id, 
+                    JSON_ARRAYAGG(l.code) as locale_codes
+                FROM pim_catalog_channel c
+				JOIN pim_catalog_channel_locale cl on cl.channel_id = c.id
+				JOIN pim_catalog_locale l on l.id = cl.locale_id
+                GROUP BY c.id
+            ) as locales on locales.channel_locale_id = c.id
             LEFT JOIN pim_catalog_channel_translation ct on ct.foreign_key = c.id
             WHERE c.code = :code
+            GROUP BY c.code
 SQL;
 
         $stmt = $this->entityManager->getConnection()->prepare($sql);
@@ -51,35 +66,44 @@ SQL;
         if (empty($rows)) {
             return null;
         }
+        $row = $rows[0];
 
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
         $currencyCodes = [];
+
+        if (isset($row['currency_codes'])) {
+            $decodedCurrencyCodes = json_decode($row['currency_codes'], true);
+            if (null !== $decodedCurrencyCodes) {
+                foreach ($decodedCurrencyCodes as $currencyCode) {
+                    $currencyCodes[] = CurrencyCode::createFromString($currencyCode);
+                }
+            }
+        }
+
         $localeCodes = [];
+        if (isset($row['locale_codes'])) {
+            $decodedLocaleCodes = json_decode($row['locale_codes'], true);
+            if (null !== $decodedLocaleCodes) {
+                foreach ($decodedLocaleCodes as $localeCode) {
+                    $localeCodes[] = LocaleCode::createFromString($localeCode);
+                }
+            }
+        }
+
         $labels =[];
-        foreach ($rows as $row) {
-            if (isset($row['currency_code'])) {
-                $currencyCode = Type::getType(Type::STRING)->convertToPhpValue($row['currency_code'], $platform);
-                $currencyCodes[$currencyCode] = CurrencyCode::createFromString($currencyCode);
-            }
-
-            if (isset($row['locale_code'])) {
-                $localeCode = Type::getType(Type::STRING)->convertToPhpValue($row['locale_code'], $platform);
-                $localeCodes[$localeCode] = LocaleCode::createFromString($localeCode);
-            }
-
-            if (isset($row['locale_of_label'])) {
-                $localeCode = Type::getType(Type::STRING)->convertToPhpValue($row['locale_of_label'], $platform);
-                $label = Type::getType(Type::STRING)->convertToPhpValue($row['label'], $platform);
-                $labels[$localeCode] = ChannelLabel::createFromLocaleCode(LocaleCode::createFromString($localeCode), $label);
+        $decodedTranslations = json_decode($row['translations'], true);
+        foreach ($decodedTranslations as $translation) {
+            if (isset($translation['locale'])) {
+                $labels[] = ChannelLabel::createFromLocaleCode(LocaleCode::createFromString($translation['locale']), $translation['label']);
             }
         }
 
         return new Channel(
             $channelCode,
-            array_values($localeCodes),
-            array_values($currencyCodes),
-            array_values($labels)
+            $localeCodes,
+            $currencyCodes,
+            $labels
         );
     }
 }

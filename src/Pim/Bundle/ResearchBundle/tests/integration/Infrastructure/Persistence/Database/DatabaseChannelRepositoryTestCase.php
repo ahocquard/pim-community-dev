@@ -114,8 +114,8 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
         Assert::assertEquals('EUR', $channel->currencyCodes()[0]->getValue());
         Assert::assertEquals('USD', $channel->currencyCodes()[1]->getValue());
         Assert::assertCount(2, $channel->localeCodes());
-        Assert::assertEquals('locale_code_1', $channel->localeCodes()[0]->getValue());
-        Assert::assertEquals('locale_code_2', $channel->localeCodes()[1]->getValue());
+        Assert::assertEquals('locale_code_2', $channel->localeCodes()[0]->getValue());
+        Assert::assertEquals('locale_code_1', $channel->localeCodes()[1]->getValue());
         Assert::assertCount(2, $channel->labels());
         Assert::assertEquals('label_1', $channel->labels()[0]->value());
         Assert::assertEquals('label_2', $channel->labels()[1]->value());
@@ -132,8 +132,8 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
         Assert::assertEquals('channel_code_without_currency', $channel->code()->getValue());
         Assert::assertCount(0, $channel->currencyCodes());
         Assert::assertCount(2, $channel->localeCodes());
-        Assert::assertEquals('locale_code_1', $channel->localeCodes()[0]->getValue());
-        Assert::assertEquals('locale_code_2', $channel->localeCodes()[1]->getValue());
+        Assert::assertEquals('locale_code_2', $channel->localeCodes()[0]->getValue());
+        Assert::assertEquals('locale_code_1', $channel->localeCodes()[1]->getValue());
         Assert::assertCount(2, $channel->labels());
         Assert::assertEquals('label_1', $channel->labels()[0]->value());
         Assert::assertEquals('label_2', $channel->labels()[1]->value());
