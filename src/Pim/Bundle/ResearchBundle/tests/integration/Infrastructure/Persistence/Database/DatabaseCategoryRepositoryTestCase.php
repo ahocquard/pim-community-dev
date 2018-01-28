@@ -85,4 +85,40 @@ class DatabaseCategoryRepositoryTestCase extends KernelTestCase
         $category = $repository->withCode(CategoryCode::createFromString('foo'));
         Assert::assertNull($category);
     }
+
+    public function test_with_codes_on_persisted_categories()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.category.category_repository');
+
+        $categories = $repository->withCodes([
+            CategoryCode::createFromString('root_category'),
+            CategoryCode::createFromString('child_category'),
+            CategoryCode::createFromString('foo')
+        ]);
+        Assert::assertNotNull($categories);
+        Assert::assertCount(2, $categories);
+        Assert::assertEquals('child_category', $categories[0]->code()->getValue());
+        Assert::assertNotNull($categories[0]->parentCode());
+        Assert::assertEquals('root_category', $categories[0]->parentCode()->getValue());
+        Assert::assertCount(0, $categories[0]->labels());
+
+        Assert::assertEquals('root_category', $categories[1]->code()->getValue());
+        Assert::assertNull($categories[1]->parentCode());
+        Assert::assertCount(2, $categories[1]->labels());
+        Assert::assertEquals('US label', $categories[1]->labels()[0]->value());
+        Assert::assertEquals('FR label', $categories[1]->labels()[1]->value());
+        Assert::assertEquals('en_US', $categories[1]->labels()[0]->localeCode()->getValue());
+        Assert::assertEquals('fr_FR', $categories[1]->labels()[1]->localeCode()->getValue());
+    }
+
+    public function test_with_codes_on_non_existing_attributes()
+    {
+        $repository = static::$kernel->getContainer()->get('pim_research.domain_model.category.category_repository');
+
+        $categories = $repository->withCodes([
+            CategoryCode::createFromString('foo'),
+            CategoryCode::createFromString('baz')
+        ]);
+        Assert::assertEquals([], $categories);
+    }
 }

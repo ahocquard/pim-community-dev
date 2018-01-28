@@ -31,19 +31,18 @@ class DatabaseCategoryRepositorySpec extends ObjectBehavior
     {
         $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'category_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['category_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
         $stmt->fetchAll()->willReturn([
             [
+                'code' => 'category_code',
                 'parent_code' => null,
-                'locale_of_label' => 'fr_FR',
-                'label' => 'FR label',
-            ],
-            [
-                'parent_code' => null,
-                'locale_of_label' => 'en_US',
-                'label' => 'US label',
-            ],
+                'translations' => '[{"locale":"fr_FR", "label":"FR label"},{"locale":"en_US", "label":"US label"}]'
+            ]
         ]);
 
         $this
@@ -64,13 +63,16 @@ class DatabaseCategoryRepositorySpec extends ObjectBehavior
     {
         $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'category_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['category_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
         $stmt->fetchAll()->willReturn([
             [
+                'code' => 'category_code',
                 'parent_code' => 'root_category',
-                'locale_of_label' => null,
-                'label' => null,
+                'translations' => '[{"locale":null, "label":null}]'
             ]
         ]);
 
@@ -87,13 +89,82 @@ class DatabaseCategoryRepositorySpec extends ObjectBehavior
 
     function it_returns_null_when_category_is_not_found($connection, Statement $stmt)
     {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
         $connection->prepare(Argument::cetera())->willReturn($stmt);
-        $stmt->bindValue('code', 'category_code')->shouldBeCalled();
-        $stmt->execute()->shouldBeCalled();
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['category_code']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
         $stmt->fetchAll()->willReturn([]);
 
         $this
             ->withCode(CategoryCode::createFromString('category_code'))
             ->shouldReturn(null);
+    }
+
+    function it_gets_categories_with_codes($connection, Statement $stmt)
+    {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
+        $connection->prepare(Argument::cetera())->willReturn($stmt);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['category_code_1', 'category_code_2', 'foo']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([
+            [
+                'code' => 'category_code_1',
+                'parent_code' => null,
+                'translations' => '[{"locale":"fr_FR", "label":"FR label"},{"locale":"en_US", "label":"US label"}]'
+            ],
+            [
+                'code' => 'category_code_2',
+                'parent_code' => 'root_category',
+                'translations' => '[{"locale":null, "label":null}]'
+            ]
+        ]);
+
+        $this
+            ->withCodes([
+                CategoryCode::createFromString('category_code_1'),
+                CategoryCode::createFromString('category_code_2'),
+                CategoryCode::createFromString('foo'),
+            ])
+            ->shouldBeLike([
+                new Category(
+                    CategoryCode::createFromString('category_code_1'),
+                    null,
+                    [
+                        CategoryLabel::createFromLocaleCode(LocaleCode::createFromString('fr_FR'), 'FR label'),
+                        CategoryLabel::createFromLocaleCode(LocaleCode::createFromString('en_US'), 'US label')
+                    ]
+                ),
+                new Category(
+                    CategoryCode::createFromString('category_code_2'),
+                    CategoryCode::createFromString('root_category'),
+                    []
+                )
+            ]);
+    }
+
+    function it_returns_an_empty_array_when_categories_are_not_found($connection, Statement $stmt)
+    {
+        $connection->getDatabasePlatform()->willReturn(new MySQL57Platform());
+        $connection->prepare(Argument::cetera())->willReturn($stmt);
+        $connection->executeQuery(
+            Argument::type('string'),
+            ['codes' => ['foo']],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        )->willReturn($stmt);
+
+        $stmt->fetchAll()->willReturn([]);
+
+        $this
+            ->withCodes([
+                CategoryCode::createFromString('foo'),
+            ])
+            ->shouldBeLike([]);
     }
 }

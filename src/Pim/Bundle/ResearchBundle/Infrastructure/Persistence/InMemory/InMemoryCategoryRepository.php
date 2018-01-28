@@ -18,6 +18,18 @@ class InMemoryCategoryRepository implements CategoryRepository, InMemoryReposito
         return $this->storage[$categoryCode->getValue()] ?? null;
     }
 
+    public function withCodes(array $channelCodes): array
+    {
+        $channels = [];
+        foreach ($channelCodes as $channelCode) {
+            if (isset($this->storage[$channelCode->getValue()])) {
+                $channels[] = $this->storage[$channelCode->getValue()];
+            }
+        }
+
+        return $channels;
+    }
+
     public function add($category): void
     {
         if (!$category instanceof Category) {

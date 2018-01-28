@@ -27,6 +27,13 @@ class DatabaseCategoryRepository implements CategoryRepository
 
     public function withCode(CategoryCode $categoryCode): ?Category
     {
+        $categories = $this->withCodes([$categoryCode]);
+
+        return empty($categories) ? null : $categories[0];
+    }
+
+    public function withCodes(array $categoryCodes): array
+    {
         $sql = <<<SQL
             SELECT 
 				c.code,
@@ -40,36 +47,45 @@ class DatabaseCategoryRepository implements CategoryRepository
             FROM pim_catalog_category c
             LEFT JOIN pim_catalog_category parent on parent.id = c.parent_id
             LEFT JOIN pim_catalog_category_translation ct on ct.foreign_key = c.id
-            WHERE c.code = :code
+            WHERE c.code IN (:codes)
             GROUP BY c.code
 SQL;
 
-        $stmt = $this->entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $categoryCode->getValue());
-        $stmt->execute();
-        $rows = $stmt->fetchAll();
+        $connection = $this->entityManager->getConnection();
+        $codes = array_map(function(CategoryCode $categoryCode) {
+            return $categoryCode->getValue();
+        }, $categoryCodes);
 
-        if (empty($rows)) {
-            return null;
-        }
+        $stmt = $connection->executeQuery($sql,
+            ['codes' => $codes],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        );
 
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
-        $parentCode = Type::getType(Type::STRING)->convertToPhpValue($rows[0]['parent_code'], $platform);
-        $translations = Type::getType(Type::STRING)->convertToPhpValue($rows[0]['translations'], $platform);
+        $rows = $stmt->fetchAll();
 
-        $labels =[];
-        $decodedTranslations = json_decode($translations, true);
-        foreach ($decodedTranslations as $translation) {
-            if (isset($translation['locale'])) {
-                $labels[] = CategoryLabel::createFromLocaleCode(LocaleCode::createFromString($translation['locale']), $translation['label']);
+        $categories = [];
+        foreach ($rows as $row) {
+            $code = Type::getType(Type::STRING)->convertToPhpValue($row['code'], $platform);
+            $parentCode = Type::getType(Type::STRING)->convertToPhpValue($row['parent_code'], $platform);
+            $translations = Type::getType(Type::STRING)->convertToPhpValue($row['translations'], $platform);
+
+            $labels =[];
+            $decodedTranslations = json_decode($translations, true);
+            foreach ($decodedTranslations as $translation) {
+                if (isset($translation['locale'])) {
+                    $labels[] = CategoryLabel::createFromLocaleCode(LocaleCode::createFromString($translation['locale']), $translation['label']);
+                }
             }
+
+            $categories[] = new Category(
+                CategoryCode::createFromString($code),
+                null !== $parentCode ? CategoryCode::createFromString($parentCode) : null,
+                $labels
+            );
         }
 
-        return new Category(
-            $categoryCode,
-            null !== $parentCode ? CategoryCode::createFromString($parentCode) : null,
-            $labels
-        );
+        return $categories;
     }
 }
