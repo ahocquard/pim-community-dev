@@ -29,13 +29,19 @@ class DatabaseCategoryRepository implements CategoryRepository
     {
         $sql = <<<SQL
             SELECT 
+				c.code,
                 parent.code as parent_code,
-                ct.locale as locale_of_label,
-                ct.label
+                JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                        'locale', ct.locale,
+                        'label', ct.label
+                    )
+                ) as translations
             FROM pim_catalog_category c
             LEFT JOIN pim_catalog_category parent on parent.id = c.parent_id
             LEFT JOIN pim_catalog_category_translation ct on ct.foreign_key = c.id
             WHERE c.code = :code
+            GROUP BY c.code
 SQL;
 
         $stmt = $this->entityManager->getConnection()->prepare($sql);
@@ -50,13 +56,13 @@ SQL;
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
         $parentCode = Type::getType(Type::STRING)->convertToPhpValue($rows[0]['parent_code'], $platform);
+        $translations = Type::getType(Type::STRING)->convertToPhpValue($rows[0]['translations'], $platform);
 
         $labels =[];
-        foreach ($rows as $row) {
-            $localeCode = Type::getType(Type::STRING)->convertToPhpValue($row['locale_of_label'], $platform);
-            if (null !== $localeCode) {
-                $label = Type::getType(Type::STRING)->convertToPhpValue($row['label'], $platform);
-                $labels[] = CategoryLabel::createFromLocaleCode(LocaleCode::createFromString($localeCode), $label);
+        $decodedTranslations = json_decode($translations, true);
+        foreach ($decodedTranslations as $translation) {
+            if (isset($translation['locale'])) {
+                $labels[] = CategoryLabel::createFromLocaleCode(LocaleCode::createFromString($translation['locale']), $translation['label']);
             }
         }
 
