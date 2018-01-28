@@ -25,33 +25,9 @@ class DatabaseAttributeRepository implements AttributeRepository
 
     public function withCode(AttributeCode $attributeCode): ?Attribute
     {
-        $sql = <<<SQL
-            SELECT a.attribute_type, a.is_localizable, a.is_scopable 
-            FROM pim_catalog_attribute a
-            WHERE a.code = :code
-SQL;
+        $attributes = $this->withCodes([$attributeCode]);
 
-        $stmt = $this->entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $attributeCode->getValue());
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        if (false === $row) {
-            return null;
-        }
-
-        $platform = $this->entityManager->getConnection()->getDatabasePlatform();
-
-        $type = Type::getType(Type::STRING)->convertToPhpValue($row['attribute_type'], $platform);
-        $localizable = Type::getType(Type::BOOLEAN)->convertToPhpValue($row['is_localizable'], $platform);
-        $scopable = Type::getType(Type::BOOLEAN)->convertToPhpValue($row['is_scopable'], $platform);
-
-        return new Attribute(
-            $attributeCode,
-            $type,
-            $localizable,
-            $scopable
-        );
+        return empty($attributes) ? null : $attributes[0];
     }
 
     public function withCodes(array $attributeCodes): array
