@@ -25,29 +25,9 @@ class DatabaseCurrencyRepository implements CurrencyRepository
 
     public function withCode(CurrencyCode $currencyCode): ?Currency
     {
-        $sql = <<<SQL
-            SELECT c.is_activated
-            FROM pim_catalog_currency c
-            WHERE c.code = :code
-SQL;
+        $currencies = $this->withCodes([$currencyCode]);
 
-        $stmt = $this->entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $currencyCode->getValue());
-        $stmt->execute();
-        $row = $stmt->fetch();
-
-        if (false === $row) {
-            return null;
-        }
-
-        $platform = $this->entityManager->getConnection()->getDatabasePlatform();
-
-        $enabled = Type::getType(Type::BOOLEAN)->convertToPhpValue($row['is_activated'], $platform);
-
-        return new Currency(
-            $currencyCode,
-            $enabled
-        );
+        return empty($currencies) ? null : $currencies[0];
     }
 
     public function withCodes(array $currencyCodes): array
