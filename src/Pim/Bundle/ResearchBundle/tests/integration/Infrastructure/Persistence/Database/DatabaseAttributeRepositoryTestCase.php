@@ -18,6 +18,7 @@ class DatabaseAttributeRepositoryTestCase extends KernelTestCase
     {
         static::bootKernel(['debug' => false]);
         $entityManager = static::$kernel->getContainer()->get('doctrine.orm.entity_manager');
+
         (new ResetDatabase($entityManager))->byDeletingRows();
 
         $attribute1 = new Attribute(

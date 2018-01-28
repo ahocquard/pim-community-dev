@@ -14,10 +14,6 @@ class Label
     /** @var string */
     private $value;
 
-    /**
-     * @param LocaleCode $localeCode
-     * @param string     $value
-     */
     public function __construct(LocaleCode $localeCode, string $value)
     {
         $this->localeCode = $localeCode;

@@ -21,12 +21,6 @@ class Channel
     /** @var ChannelLabel[] */
     private $labels;
 
-    /**
-     * @param ChannelCode $code
-     * @param array       $localeCodes
-     * @param array       $currencyCodes
-     * @param array       $labels
-     */
     public function __construct(ChannelCode $code, array $localeCodes, array $currencyCodes, array $labels)
     {
         $this->code = $code;

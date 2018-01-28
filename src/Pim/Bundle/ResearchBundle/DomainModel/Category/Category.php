@@ -15,11 +15,6 @@ class Category
     /** @var CategoryLabel[] */
     private $labels;
 
-    /**
-     * @param CategoryCode      $code
-     * @param null|CategoryCode $parentCode
-     * @param CategoryLabel[]   $labels
-     */
     public function __construct(CategoryCode $code, ?CategoryCode $parentCode, array $labels)
     {
         $this->code = $code;

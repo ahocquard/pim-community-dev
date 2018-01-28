@@ -27,10 +27,15 @@ class DatabaseProductRepository implements ProductRepository
     public function withIdentifier(ProductIdentifier $productIdentifier): ?Product
     {
         $sql = <<<SQL
-SELECT p.created, p.updated, p.is_enabled, f.code as family_code
-FROM pim_catalog_product p
-JOIN pim_catalog_family f ON f.id = p.family_id
-WHERE p.identifier = :identifier
+            SELECT 
+                p.created, 
+                p.updated, 
+                p.is_enabled, 
+                p.raw_values,
+                f.code as family_code
+            FROM pim_catalog_product p
+            JOIN pim_catalog_family f ON f.id = p.family_id
+            WHERE p.identifier = :identifier
 SQL;
 
         $stmt = $this->entityManager->getConnection()->prepare($sql);
