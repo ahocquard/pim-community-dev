@@ -102,8 +102,6 @@ class DatabaseChannelRepositoryTestCase extends KernelTestCase
 
         $expectedChannels= $this->channelFixtures();
 
-        Assert::assertNotNull($channels);
-        Assert::assertCount(4, $channels);
         Assert::assertEquals(array_values($expectedChannels), $channels, '', 0.0, 10, true);
     }
 

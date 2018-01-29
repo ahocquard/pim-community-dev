@@ -9,10 +9,12 @@ use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\InMemory\InMemoryFamily
 
 class InMemoryFamilyRepositorySpec extends ObjectBehavior
 {
-    function let(Family $family)
+    function let(Family $computer, Family $tshirt)
     {
-        $family->code()->willReturn(FamilyCode::createFromString('family_code_1'));
-        $this->add($family);
+        $computer->code()->willReturn(FamilyCode::createFromString('computer'));
+        $tshirt->code()->willReturn(FamilyCode::createFromString('tshirt'));
+        $this->add($computer);
+        $this->add($tshirt);
     }
 
     function it_is_initializable()
@@ -20,13 +22,28 @@ class InMemoryFamilyRepositorySpec extends ObjectBehavior
         $this->shouldHaveType(InMemoryFamilyRepository::class);
     }
 
-    function it_gets_a_family_with_code($family)
+    function it_gets_a_family_with_code($computer)
     {
-        $this->withCode(FamilyCode::createFromString('family_code_1'))->shouldReturn($family);
+        $this->withCode(FamilyCode::createFromString('computer'))->shouldReturn($computer);
     }
 
     function it_returns_null_when_family_is_not_found()
     {
-        $this->withCode(FamilyCode::createFromString('family_code_2'))->shouldReturn(null);
+        $this->withCode(FamilyCode::createFromString('foo'))->shouldReturn(null);
+    }
+
+    function it_gets_families_with_codes($computer, $tshirt)
+    {
+        $this->withCodes([
+            FamilyCode::createFromString('computer'),
+            FamilyCode::createFromString('tshirt')
+        ])->shouldReturn([$computer, $tshirt]);
+    }
+
+    function it_returns_empty_array_when_no_channel_found()
+    {
+        $this->withCodes([
+            FamilyCode::createFromString('foo'),
+        ])->shouldReturn([]);
     }
 }

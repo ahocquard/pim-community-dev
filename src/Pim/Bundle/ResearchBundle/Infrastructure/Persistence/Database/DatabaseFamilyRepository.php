@@ -30,18 +30,23 @@ class DatabaseFamilyRepository implements FamilyRepository
 
     public function withCode(FamilyCode $familyCode): ?Family
     {
+        $families = $this->withCodes([$familyCode]);
+
+        return empty($families) ? null : $families[0];
+    }
+
+    public function withCodes(array $familyCodes): array
+    {
         $sql = <<<SQL
-            SELECT
+           SELECT
                 f.code, 
                 f.created, 
                 f.updated,
                 a_label.code as attribute_as_label_code,
                 a_image.code as attribute_as_image_code,
-                attributes.attributes,
-                attribute_requirements.channel_code,
-                attribute_requirements.attribute_requirements,
-                ft.locale as locale_of_label,
-                ft.label 
+                attributes.attributes as attribute_codes,
+                attribute_requirements.attribute_requirements as attribute_requirements,
+				JSON_ARRAYAGG(JSON_OBJECT('locale', ft.locale, 'label', ft.label)) as translations
             FROM pim_catalog_family f
             LEFT JOIN pim_catalog_attribute a_label on a_label.id = f.label_attribute_id
             LEFT JOIN pim_catalog_attribute a_image on a_image.id = f.image_attribute_id
@@ -49,86 +54,128 @@ class DatabaseFamilyRepository implements FamilyRepository
             LEFT JOIN (
                 SELECT 
                     f.id as family_attribute_id, 
-                    GROUP_CONCAT(DISTINCT a.code SEPARATOR '|') as attributes
+                    JSON_ARRAYAGG(a.code) as attributes
                 FROM pim_catalog_family f
                 JOIN pim_catalog_family_attribute fa on fa.family_id = f.id
                 JOIN pim_catalog_attribute a on a.id = fa.attribute_id
                 GROUP BY f.id
             ) as attributes on attributes.family_attribute_id = f.id
             LEFT JOIN (
-                SELECT
-                    f.id as family_attribute_id,
-                    c.code as channel_code, 
-                    GROUP_CONCAT(DISTINCT a.code SEPARATOR '|') as attribute_requirements
-                FROM pim_catalog_family f
-                JOIN pim_catalog_attribute_requirement r on r.family_id = f.id 
-                JOIN pim_catalog_channel c on c.id = r.channel_id and r.required = '1'
-                JOIN pim_catalog_attribute a on a.id = r.attribute_id
-                GROUP BY f.id, c.code
+				SELECT 
+					family_attribute_id,
+                    JSON_ARRAYAGG(attribute_requirements_per_channel) as attribute_requirements
+				FROM (
+					SELECT
+						f.id as family_attribute_id,
+						JSON_OBJECT('channel', c.code, 'attribute_requirement_codes',  JSON_ARRAYAGG(a.code)) as attribute_requirements_per_channel
+					FROM pim_catalog_family f
+					JOIN pim_catalog_attribute_requirement r on r.family_id = f.id 
+					JOIN pim_catalog_channel c on c.id = r.channel_id and r.required = '1'
+					JOIN pim_catalog_attribute a on a.id = r.attribute_id
+					GROUP BY f.id, c.code
+				) as attribute_requirements_per_channel
+                GROUP BY family_attribute_id 
             ) as attribute_requirements on attribute_requirements.family_attribute_id = f.id 
-            WHERE f.code = :code
+            WHERE f.code IN (:codes)
+            GROUP BY f.code, a_label.code, a_image.code
 SQL;
 
-        $stmt = $this->entityManager->getConnection()->prepare($sql);
-        $stmt->bindValue('code', $familyCode->getValue());
-        $stmt->execute();
-        $rows = $stmt->fetchAll();
+        $connection = $this->entityManager->getConnection();
+        $codes = array_map(function(FamilyCode $familyCode) {
+            return $familyCode->getValue();
+        }, $familyCodes);
 
-        if (empty($rows)) {
-            return null;
-        }
+        $stmt = $connection->executeQuery($sql,
+            ['codes' => $codes],
+            ['codes' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        );
 
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
-        $created = Type::getType(Type::DATETIME)->convertToPhpValue($rows[0]['created'], $platform);
-        $updated = Type::getType(Type::DATETIME)->convertToPhpValue($rows[0]['updated'], $platform);
-        $attributeAsLabelCode = Type::getType(Type::STRING)->convertToPhpValue($rows[0]['attribute_as_label_code'], $platform);
-        $attributeAsImageCode = Type::getType(Type::STRING)->convertToPhpValue($rows[0]['attribute_as_image_code'], $platform);
+        $rows = $stmt->fetchAll();
 
+        $families = [];
+        foreach ($rows as $row) {
+            $code = Type::getType(Type::STRING)->convertToPhpValue($row['code'], $platform);
+            $created = Type::getType(Type::DATETIME)->convertToPhpValue($row['created'], $platform);
+            $updated = Type::getType(Type::DATETIME)->convertToPhpValue($row['updated'], $platform);
+            $attributeAsLabelCode = Type::getType(Type::STRING)->convertToPhpValue($row['attribute_as_label_code'], $platform);
+            $attributeAsImageCode = Type::getType(Type::STRING)->convertToPhpValue($row['attribute_as_image_code'], $platform);
+
+            $families[] = new Family(
+                FamilyCode::createFromString($code),
+                $created,
+                $updated,
+                null !== $attributeAsLabelCode ? AttributeCode::createFromString($attributeAsLabelCode) : null,
+                null !== $attributeAsImageCode ? AttributeCode::createFromString($attributeAsImageCode) : null,
+                $this->hydrateAttributeCodes($row),
+                $this->hydrateAttributeRequirements($row),
+                $this->hydrateLabels($row)
+            );
+        }
+
+        return $families;
+    }
+
+    private function hydrateAttributeCodes(array $row): array
+    {
         $attributeCodes = [];
-        $attributeCodesList = Type::getType(Type::STRING)->convertToPhpValue($rows[0]['attributes'], $platform);
-        if (isset($attributeCodesList)) {
-            foreach (explode('|', $attributeCodesList) as $attributeCode) {
-                $attributeCodes[] = AttributeCode::createFromString($attributeCode);
+        if (isset($row['attribute_codes'])) {
+            $decodedAttributeCodes = json_decode($row['attribute_codes'], true);
+            if (null !== $decodedAttributeCodes) {
+                foreach ($decodedAttributeCodes as $attributeCode) {
+                    $attributeCodes[] = AttributeCode::createFromString($attributeCode);
+                }
             }
         }
 
+        return $attributeCodes;
+    }
+
+    private function hydrateAttributeRequirements(array $row): array
+    {
         $attributeRequirements = [];
+        if (!isset($row['attribute_requirements'])) {
+            return $attributeRequirements;
+        }
+
+        $decodedAttributeRequirements = json_decode($row['attribute_requirements'], true);
+        if (null === $decodedAttributeRequirements) {
+            return $attributeRequirements;
+        }
+
+        foreach ($decodedAttributeRequirements as $attributeRequirement) {
+            if (!isset($attributeRequirement['channel'])) {
+                continue;
+            }
+
+            $attributeRequirementCodes = [];
+            foreach ($attributeRequirement['attribute_requirement_codes'] as $attributeCode) {
+                $attributeRequirementCodes[] = AttributeCode::createFromString($attributeCode);
+            }
+
+            $attributeRequirements[] = new AttributeRequirement(
+                ChannelCode::createFromString($attributeRequirement['channel']),
+                $attributeRequirementCodes
+            );
+        }
+
+        return $attributeRequirements;
+    }
+
+    private function hydrateLabels(array $row): array
+    {
         $labels =[];
-        foreach ($rows as $row) {
-            $channel = Type::getType(Type::STRING)->convertToPhpValue($row['channel_code'], $platform);
-            if (null !== $channel && !isset($attributeRequirements[$channel])) {
-
-                $attributeRequirementCodes = [];
-                $attributeRequirementCodesList = Type::getType(Type::STRING)->convertToPhpValue($row['attribute_requirements'], $platform);
-                if (null !== $attributeRequirementCodesList) {
-                    foreach (explode('|', $attributeRequirementCodesList) as $attributeRequirementCode) {
-                        $attributeRequirementCodes[] = AttributeCode::createFromString($attributeRequirementCode);
-                    }
-                }
-
-                $attributeRequirements[$channel] = AttributeRequirement::createFromChannelCode(
-                    ChannelCode::createFromString($channel),
-                    $attributeRequirementCodes
+        $decodedTranslations = json_decode($row['translations'], true);
+        foreach ($decodedTranslations as $translation) {
+            if (isset($translation['locale'])) {
+                $labels[] = FamilyLabel::createFromLocaleCode(
+                    LocaleCode::createFromString($translation['locale']),
+                    $translation['label']
                 );
             }
-
-            $labelLocaleCode = Type::getType(Type::STRING)->convertToPhpValue($row['locale_of_label'], $platform);
-            if (null !== $labelLocaleCode && !isset($labels[$labelLocaleCode])) {
-                $label = Type::getType(Type::STRING)->convertToPhpValue($row['label'], $platform);
-                $labels[$labelLocaleCode] = FamilyLabel::createFromLocaleCode(LocaleCode::createFromString($labelLocaleCode), $label);
-            }
         }
 
-        return new Family(
-            $familyCode,
-            $created,
-            $updated,
-            null !== $attributeAsLabelCode ? AttributeCode::createFromString($attributeAsLabelCode) : null,
-            null !== $attributeAsImageCode ? AttributeCode::createFromString($attributeAsImageCode) : null,
-            $attributeCodes,
-            array_values($attributeRequirements),
-            array_values($labels)
-        );
+        return $labels;
     }
 }

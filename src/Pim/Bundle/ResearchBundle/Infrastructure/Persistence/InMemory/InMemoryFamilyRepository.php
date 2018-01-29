@@ -18,6 +18,18 @@ class InMemoryFamilyRepository implements FamilyRepository, InMemoryRepository
         return $this->storage[$familyCode->getValue()] ?? null;
     }
 
+    public function withCodes(array $familyCodes): array
+    {
+        $families = [];
+        foreach ($familyCodes as $familyCode) {
+            if (isset($this->storage[$familyCode->getValue()])) {
+                $families[] = $this->storage[$familyCode->getValue()];
+            }
+        }
+
+        return $families;
+    }
+
     public function add($family): void
     {
         if (!$family instanceof Family) {
