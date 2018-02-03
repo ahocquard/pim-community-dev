@@ -41,6 +41,10 @@ security:
             anonymous:                      true
 
         oauth_token:
+            pattern:                        ^/graphql
+            security:                       false
+
+        oauth_token:
             pattern:                        ^/api/oauth/v1/token
             security:                       false
 

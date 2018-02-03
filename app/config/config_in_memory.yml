@@ -1,0 +1,21 @@
+imports:
+    - { resource: config.yml }
+
+framework:
+    test: ~
+    session:
+        storage_id: session.storage.mock_array
+
+swiftmailer:
+    disable_delivery: true
+
+assetic:
+    use_controller: false
+
+pim_enrich:
+    record_mails: true
+
+services:
+    session.storage.mock_array:
+        class: Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage
+        public: false
