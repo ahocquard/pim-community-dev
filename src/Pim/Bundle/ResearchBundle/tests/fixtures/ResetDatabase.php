@@ -20,11 +20,11 @@ class ResetDatabase
     {
         $connection = $this->entityManager->getConnection();
         $schemaManager = $connection->getSchemaManager();
-        $tables = $schemaManager->listTables();
+        $tables = $schemaManager->listTableNames();
         $sql = 'SET FOREIGN_KEY_CHECKS = 0;';
 
         foreach($tables as $table) {
-            $sql .= sprintf('DELETE FROM %s ;', $table->getName());
+            $sql .= sprintf('DELETE FROM %s ;', $table);
         }
 
         $sql .= 'SET FOREIGN_KEY_CHECKS = 1;';

@@ -22,7 +22,7 @@ class Product
     private $enabled;
 
     /** @var FamilyCode */
-    private $family;
+    private $familyCode;
 
     /** @var CategoryCode[] */
     private $categoryCodes;
@@ -30,17 +30,20 @@ class Product
     public function __construct(
         ProductIdentifier $identifier,
         \DateTimeInterface $created,
-        ?\DateTimeInterface $updated,
+        \DateTimeInterface $updated,
         bool $enabled,
-        ?FamilyCode $family,
+        ?FamilyCode $familyCode,
         array $categoryCodes
     ) {
         $this->identifier = $identifier;
         $this->created = $created;
         $this->updated = $updated;
         $this->enabled = $enabled;
-        $this->family = $family;
-        $this->categoryCodes = $categoryCodes;
+        $this->familyCode = $familyCode;
+
+        $this->categoryCodes = (function(CategoryCode ...$categoryCode) {
+            return $categoryCode;
+        })(...$categoryCodes);
     }
 
     public function identifier(): ProductIdentifier
@@ -53,7 +56,7 @@ class Product
         return $this->created;
     }
 
-    public function updated(): ?\DateTimeInterface
+    public function updated(): \DateTimeInterface
     {
         return $this->updated;
     }
@@ -63,8 +66,13 @@ class Product
         return $this->enabled;
     }
 
-    public function family(): ?FamilyCode
+    public function familyCode(): ?FamilyCode
     {
-        return $this->family;
+        return $this->familyCode;
+    }
+
+    public function categoryCodes(): array
+    {
+        return $this->categoryCodes;
     }
 }

@@ -7,9 +7,13 @@ namespace Pim\Bundle\ResearchBundle\tests\fixtures;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeRepository;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Family\AttributeRequirement;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyLabel;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyRepository;
+use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductRepository;
@@ -18,81 +22,105 @@ use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\InMemory\InMemoryFamily
 use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\InMemory\InMemoryProductRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class LoadFixtures
+class FamilyFixtures
 {
-    /** @var ContainerInterface */
-    private $container;
-
-    public function __construct(ContainerInterface $container)
+    public function getFixtures()
     {
-        $this->container = $container;
-    }
-
-    public function __invoke(): void
-    {
-        $this->container->set('pim_research.domain_model.attribute.attribute_repository', $this->attributeRepository());
-        $this->container->set('pim_research.domain_model.family.family_repository', $this->familyRepository());
-        $this->container->set('pim_research.domain_model.product.product_repository', $this->productRepository());
-    }
-
-    private function attributeRepository(): AttributeRepository
-    {
-        $repository = new InMemoryAttributeRepository();
-
-        $repository->add(
-            $attribute = new Attribute(
-                AttributeCode::createFromString('attribute_code'),
-                'pim_catalog_text',
-                false,
-                true
-            )
+        $tshirt = new Family(
+            FamilyCode::createFromString('tshirt'),
+            new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
+            new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
+            AttributeCode::createFromString('name'),
+            AttributeCode::createFromString('image'),
+            [
+                AttributeCode::createFromString('name'),
+                AttributeCode::createFromString('image'),
+                AttributeCode::createFromString('color'),
+                AttributeCode::createFromString('size'),
+            ],
+            [
+                AttributeRequirement::createFromChannelCode(
+                    ChannelCode::createFromString('ecommerce'),
+                    [
+                        AttributeCode::createFromString('color'),
+                        AttributeCode::createFromString('size')
+                    ]
+                ),
+                AttributeRequirement::createFromChannelCode(
+                    ChannelCode::createFromString('tablet'),
+                    [
+                        AttributeCode::createFromString('color'),
+                    ]
+                ),
+            ],
+            [
+                FamilyLabel::createFromLocaleCode(LocaleCode::createFromString('en_US'), 'US tshirt'),
+                FamilyLabel::createFromLocaleCode(LocaleCode::createFromString('fr_FR'), 'FR tshirt'),
+            ]
         );
 
-        $repository->add(
-            $attribute = new Attribute(
-                AttributeCode::createFromString('attribute_as_label_code'),
-                'pim_catalog_text',
-                false,
-                true
-            )
+        $computer = new Family(
+            FamilyCode::createFromString('computer'),
+            new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
+            new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
+            null,
+            AttributeCode::createFromString('image'),
+            [
+                AttributeCode::createFromString('name'),
+                AttributeCode::createFromString('image'),
+            ],
+            [
+                AttributeRequirement::createFromChannelCode(
+                    ChannelCode::createFromString('ecommerce'),
+                    [
+                        AttributeCode::createFromString('name')
+                    ]
+                ),
+            ],
+            [
+                FamilyLabel::createFromLocaleCode(LocaleCode::createFromString('en_US'), 'US computer'),
+            ]
         );
 
-        return $repository;
-    }
-
-    private function familyRepository(): FamilyRepository
-    {
-        $repository = new InMemoryFamilyRepository();
-        $repository->add(
-            new Family(
-                FamilyCode::createFromString('family_code'),
-                new \DateTimeImmutable('2017-05-07T00:00:00+01:00'),
-                new \DateTimeImmutable('2017-05-08T00:00:00+01:00'),
-                [
-                    AttributeCode::createFromString('attribute_as_label_code'),
-                    AttributeCode::createFromString('attribute_code'),
-                ],
-                AttributeCode::createFromString('attribute_as_label_code')
-            )
+        $table = new Family(
+            FamilyCode::createFromString('table'),
+            new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
+            new \DateTimeImmutable('2017-05-08T00:00:00+00:00'),
+            AttributeCode::createFromString('name'),
+            null,
+            [
+                AttributeCode::createFromString('name'),
+                AttributeCode::createFromString('size'),
+            ],
+            [
+                AttributeRequirement::createFromChannelCode(
+                    ChannelCode::createFromString('ecommerce'),
+                    [
+                        AttributeCode::createFromString('size')
+                    ]
+                ),
+            ],
+            [
+                FamilyLabel::createFromLocaleCode(LocaleCode::createFromString('fr_FR'), 'FR table'),
+            ]
         );
 
-        return $repository;
-    }
-
-    private function productRepository(): ProductRepository
-    {
-        $repository = new InMemoryProductRepository();
-
-        $repository->add(
-            new Product(
-                ProductIdentifier::createFromString('product_identifier'),
-                new \DateTimeImmutable('2017-05-07T00:00:00+01:00'),
-                new \DateTimeImmutable('2017-05-08T00:00:00+01:00'),
-                true,
-                FamilyCode::createFromString('family_code')
-            )
+        $television = new Family(
+            FamilyCode::createFromString('television'),
+            new \DateTimeImmutable('2017-05-11T00:00:00+00:00'),
+            new \DateTimeImmutable('2017-05-15T00:00:00+00:00'),
+            null,
+            null,
+            [],
+            [],
+            []
         );
 
-        return $repository;
+        return [
+            'tshirt' => $tshirt,
+            'computer' => $computer,
+            'table' => $table,
+            'television' => $television,
+        ];
     }
 }

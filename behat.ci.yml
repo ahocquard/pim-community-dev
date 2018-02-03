@@ -1,8 +1,24 @@
 default:
     suites:
+        graph_ql:
+            paths: [ %paths.base%/src/Pim/Bundle/ResearchBundle/tests/ ]
+            contexts:
+                - Pim\Bundle\ResearchBundle\tests\contexts\HookContext:
+                    - '@pim_research.fixtures.reset_database'
+                - Pim\Bundle\ResearchBundle\tests\contexts\RequestContext:
+                    - '@test.client'
+                - Pim\Bundle\ResearchBundle\tests\contexts\FamilyContext:
+                    - '@pim_research.fixtures.family_loader'
+                - Pim\Bundle\ResearchBundle\tests\contexts\LocaleContext:
+                    - '@pim_research.fixtures.locale_loader'
+                - Pim\Bundle\ResearchBundle\tests\contexts\CurrencyContext:
+                    - '@pim_research.fixtures.currency_loader'
+                - Pim\Bundle\ResearchBundle\tests\contexts\AttributeContext:
+                    - '@pim_research.fixtures.attribute_loader'
+                - Pim\Bundle\ResearchBundle\tests\contexts\ChannelContext:
+                    - '@pim_research.fixtures.channel_loader'
         TEST-pim:
             contexts:
-                - Behat\MinkExtension\Context\MinkContext
                 - Context\FeatureContext:
                     - 'Context\FeatureContext'
                     -
@@ -110,3 +126,10 @@ default:
     formatters:
         pim:
             output_path: app/build/logs/behat/
+
+in_memory:
+    extensions:
+        FriendsOfBehat\SymfonyExtension:
+            kernel:
+                env: in_memory
+                debug: false

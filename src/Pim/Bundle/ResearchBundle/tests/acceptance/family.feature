@@ -149,3 +149,21 @@ Feature: Get families information
         }
       }
     """
+
+  Scenario: Get a family that does not exist
+    When I send the following request:
+    """
+      {
+        family(code: \"computer\") {
+          code
+        }
+      }
+    """
+    Then I get the following response:
+    """
+      {
+        "data": {
+          "family": null
+        }
+      }
+    """

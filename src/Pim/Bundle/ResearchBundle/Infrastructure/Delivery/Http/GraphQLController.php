@@ -14,18 +14,12 @@ class GraphQLController
     /** @var QueryType */
     private $queryType;
 
-    /**
-     * @param QueryType $queryType
-     */
     public function __construct(QueryType $queryType)
     {
         $this->queryType = $queryType;
     }
 
-    /**
-     * @return Response
-     */
-    public function handleGraphQLRequest(Request $request)
+    public function handleGraphQLRequest(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
         $data = $data['query'];

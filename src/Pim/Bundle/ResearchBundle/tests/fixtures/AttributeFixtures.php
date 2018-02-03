@@ -22,16 +22,8 @@ use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\InMemory\InMemoryFamily
 use Pim\Bundle\ResearchBundle\Infrastructure\Persistence\InMemory\InMemoryProductRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class FamilyFixtures
+class AttributeFixtures
 {
-    /** @var ContainerInterface */
-    private $container;
-
-    public function __construct(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
-
     public function getFixtures()
     {
         $tshirt = new Family(

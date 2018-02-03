@@ -6,11 +6,14 @@ namespace Pim\Bundle\ResearchBundle\tests\contexts;
 
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
-use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
-use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\Channel;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelLabel;
+use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
 use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\EntityFixtureLoader;
 
-class AttributeContext implements Context
+class ChannelContext implements Context
 {
     /** @var EntityFixtureLoader */
     protected $loader;
@@ -21,22 +24,38 @@ class AttributeContext implements Context
     }
 
     /**
-     * @Given /^the following attributes?:$/
+     * @Given /^the following channels?:$/
      */
-    public function theFollowingAttribute(TableNode $table): void
+    public function theFollowingChannel(TableNode $table): void
     {
         foreach ($table->getHash() as $data) {
-            $localizable = isset($data['localizable']) ? filter_var($data['localizable'], FILTER_VALIDATE_BOOLEAN) : false;
-            $scopable = isset($data['scopable']) ? filter_var($data['scopable'], FILTER_VALIDATE_BOOLEAN): false;
+            $locales = isset($data['locales']) ? explode(',', $data['locales']) : [];
+            $localesCodes = array_map(function ($locale) {
+                return LocaleCode::createFromString($locale);
+            }, $locales);
 
-            $attribute = new Attribute(
-                AttributeCode::createFromString($data['code']),
-                $data['type'],
-                $localizable,
-                $scopable
+            $currencies = isset($data['currencies']) ? explode(',', $data['currencies']) : [];
+            $currencyCodes = array_map(function ($currency) {
+                return CurrencyCode::createFromString($currency);
+            }, $currencies);
+
+            $labels = [];
+            foreach ($data as $property => $value) {
+                if (false !== strpos($property, 'label-')) {
+                    [$label, $locale] = explode('-', $property);
+
+                    $labels[] = ChannelLabel::createFromLocaleCode(LocaleCode::createFromString($locale), $value);
+                }
+            }
+
+            $channel = new Channel(
+                ChannelCode::createFromString($data['code']),
+                $localesCodes,
+                $currencyCodes,
+                $labels
             );
 
-            $this->loader->load($attribute);
+            $this->loader->load($channel);
         }
     }
 }

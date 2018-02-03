@@ -6,37 +6,27 @@ namespace Pim\Bundle\ResearchBundle\tests\contexts;
 
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
+use Doctrine\ORM\EntityManagerInterface;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
 use Pim\Bundle\ResearchBundle\tests\fixtures\EntityLoader\EntityFixtureLoader;
+use Pim\Bundle\ResearchBundle\tests\fixtures\ResetDatabase;
 
-class AttributeContext implements Context
+class HookContext implements Context
 {
-    /** @var EntityFixtureLoader */
-    protected $loader;
+    /** @var ResetDatabase */
+    protected $resetDatabase;
 
-    public function __construct(EntityFixtureLoader $loader)
+    public function __construct(ResetDatabase $resetDatabase)
     {
-        $this->loader = $loader;
+        $this->resetDatabase = $resetDatabase;
     }
 
     /**
-     * @Given /^the following attributes?:$/
+     * @BeforeScenario
      */
-    public function theFollowingAttribute(TableNode $table): void
+    public function resetDatabase()
     {
-        foreach ($table->getHash() as $data) {
-            $localizable = isset($data['localizable']) ? filter_var($data['localizable'], FILTER_VALIDATE_BOOLEAN) : false;
-            $scopable = isset($data['scopable']) ? filter_var($data['scopable'], FILTER_VALIDATE_BOOLEAN): false;
-
-            $attribute = new Attribute(
-                AttributeCode::createFromString($data['code']),
-                $data['type'],
-                $localizable,
-                $scopable
-            );
-
-            $this->loader->load($attribute);
-        }
+        $this->resetDatabase->byDeletingRows();
     }
 }

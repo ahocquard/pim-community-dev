@@ -8,33 +8,28 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
+use Pim\Bundle\ResearchBundle\DomainModel\Locale\Locale;
 use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types;
 
-class AttributeType extends ObjectType
+class LocaleType extends ObjectType
 {
-    public function __construct(Types $types)
+    public function __construct()
     {
         $config = [
-            'name' => 'Attribute',
-            'description' => 'Attribute',
-            'fields' => function() use ($types) {
+            'name' => 'Locale',
+            'description' => 'Locale',
+            'fields' => function() {
                 return [
                     'code' => Type::string(),
-                    'type' => Type::string(),
-                    'localizable' => Type::boolean(),
-                    'scopable' => Type::boolean(),
+                    'enabled' => Type::boolean()
                 ];
             },
-            'resolveField' => function(Attribute $attribute, $args, $context, ResolveInfo $info) {
+            'resolveField' => function(Locale $locale, $args, $context, ResolveInfo $info) {
                 switch ($info->fieldName) {
                     case 'code':
-                        return $attribute->code()->getValue();
-                    case 'type':
-                        return $attribute->type();
-                    case 'localizable':
-                        return $attribute->localizable();
-                    case 'scopable':
-                        return $attribute->scopable();
+                        return $locale->code()->getValue();
+                    case 'enabled':
+                        return $locale->enabled();
                     default:
                         return null;
                 }

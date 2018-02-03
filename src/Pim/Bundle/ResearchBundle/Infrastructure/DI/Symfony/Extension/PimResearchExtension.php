@@ -18,5 +18,13 @@ class PimResearchExtension extends Extension
         $loader->load('../repositories.yml');
         $loader->load('../controllers.yml');
         $loader->load('../types.yml');
+
+        //if ('in_memory' === $container->getParameter('kernel.environment')) {
+        //    $loader->load('../in_memory_repositories.yml');
+        //}
+
+        if ('behat' === $container->getParameter('kernel.environment')) {
+            $loader->load('../Test/EndToEnd/fixture_loaders.yml');
+        }
     }
 }

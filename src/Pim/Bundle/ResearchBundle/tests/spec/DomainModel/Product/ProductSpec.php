@@ -3,6 +3,7 @@
 namespace spec\Pim\Bundle\ResearchBundle\DomainModel\Product;
 
 use PhpSpec\ObjectBehavior;
+use Pim\Bundle\ResearchBundle\DomainModel\Category\CategoryCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductId;
@@ -17,7 +18,11 @@ class ProductSpec extends ObjectBehavior
             new \DateTime('2017-05-07T00:00:00+01:00'),
             new \DateTime('2017-05-08T00:00:00+01:00'),
             true,
-            FamilyCode::createFromString('family_code')
+            FamilyCode::createFromString('family_code'),
+            [
+                CategoryCode::createFromString('category_1'),
+                CategoryCode::createFromString('category_2'),
+            ]
         );
     }
 
@@ -49,7 +54,15 @@ class ProductSpec extends ObjectBehavior
 
     function it_returns_family_code()
     {
-        $this->family()->shouldBeAnInstanceOf(FamilyCode::class);
-        $this->family()->getValue()->shouldReturn('family_code');
+        $this->familyCode()->shouldBeAnInstanceOf(FamilyCode::class);
+        $this->familyCode()->getValue()->shouldReturn('family_code');
+    }
+
+    function it_returns_category_codes()
+    {
+        $this->categoryCodes()->shouldBeLike([
+            CategoryCode::createFromString('category_1'),
+            CategoryCode::createFromString('category_2'),
+        ]);
     }
 }

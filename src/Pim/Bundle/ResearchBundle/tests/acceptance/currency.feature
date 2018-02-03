@@ -1,16 +1,16 @@
-Feature: Get locales information
-  In order to get information about locales
+Feature: Get currencies information
+  In order to get information about currencies
   As a developer
-  I need to be able to request locales with GraphQL API
+  I need to be able to request currencies with GraphQL API
 
-  Scenario: Get an enabled locale
-    Given the following locales:
+  Scenario: Get an enabled currency
+    Given the following currency:
       | code   | enabled |
-      | en_US  | true    |
+      | EUR    | true    |
     When I send the following request:
     """
       {
-        locale(code: \"en_US\") {
+        currency(code: \"EUR\") {
           code,
           enabled
         }
@@ -20,19 +20,19 @@ Feature: Get locales information
     """
       {
         "data": {
-          "locale": {
-            "code": "en_US",
+          "currency": {
+            "code": "EUR",
             "enabled": true
           }
         }
       }
     """
 
-  Scenario: Get a locale that does not exist
+  Scenario: Get a currency that does not exist
     When I send the following request:
     """
       {
-        locale(code: \"de_DE\") {
+        currency(code: \"USD\") {
           code,
           enabled
         }
@@ -42,7 +42,7 @@ Feature: Get locales information
     """
       {
         "data": {
-          "locale": null
+          "currency": null
         }
       }
     """

@@ -38,7 +38,8 @@ class FamilyType extends ObjectType
                     case 'attributes':
                         return $attributeRepository->withCodes($family->attributeCodes());
                     case 'attribute_as_label':
-                        return $attributeRepository->withCode($family->attributeAsLabelCode());
+                        return $family->hasAttributeAsLabel() ?
+                            $attributeRepository->withCode($family->attributeAsLabelCode()) : null;
                     default:
                         return null;
                 }

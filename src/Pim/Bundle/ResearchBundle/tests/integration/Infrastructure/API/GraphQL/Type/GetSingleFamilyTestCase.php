@@ -57,7 +57,7 @@ JSON;
     protected static function createClient(array $options = [], array $server = [])
     {
         $client = parent::createClient($options, $server);
-        (new LoadFixtures(static::$kernel->getContainer()))();
+        //(new LoadFixtures(static::$kernel->getContainer()))();
 
         return $client;
     }
