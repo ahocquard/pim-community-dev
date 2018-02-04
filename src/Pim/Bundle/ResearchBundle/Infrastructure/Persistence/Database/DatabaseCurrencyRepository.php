@@ -32,6 +32,10 @@ class DatabaseCurrencyRepository implements CurrencyRepository
 
     public function withCodes(array $currencyCodes): array
     {
+        if (empty($currencyCodes)) {
+            return [];
+        }
+
         $sql = <<<SQL
             SELECT c.code, c.is_activated 
             FROM pim_catalog_currency c

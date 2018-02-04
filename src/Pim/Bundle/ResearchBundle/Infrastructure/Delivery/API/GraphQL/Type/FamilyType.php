@@ -16,7 +16,7 @@ class FamilyType extends ObjectType
     public function __construct(Types $types, AttributeRepository $attributeRepository)
     {
         $config = [
-            'name' => 'Family',
+            'name' => 'family',
             'description' => 'Family',
             'fields' => function() use ($types) {
                 return [
@@ -24,7 +24,10 @@ class FamilyType extends ObjectType
                     'created' => Type::string(),
                     'updated' => Type::string(),
                     'attributes' => Type::listOf($types->get(AttributeType::class)),
-                    'attribute_as_label' => $types->get(AttributeType::class)
+                    'attribute_as_label' => $types->get(AttributeType::class),
+                    'attribute_as_image' => $types->get(AttributeType::class),
+                    'attribute_requirements' => Type::listOf($types->get(AttributeRequirementType::class)),
+                    'labels' => Type::listOf($types->get(LabelType::class)),
                 ];
             },
             'resolveField' => function(Family $family, $args, $context, ResolveInfo $info) use ($attributeRepository) {
@@ -40,6 +43,13 @@ class FamilyType extends ObjectType
                     case 'attribute_as_label':
                         return $family->hasAttributeAsLabel() ?
                             $attributeRepository->withCode($family->attributeAsLabelCode()) : null;
+                    case 'attribute_as_image':
+                        return $family->hasAttributeAsImage() ?
+                            $attributeRepository->withCode($family->attributeAsImageCode()) : null;
+                    case 'attribute_requirements':
+                        return $family->attributeRequirements();
+                    case 'labels':
+                        return $family->labels();
                     default:
                         return null;
                 }

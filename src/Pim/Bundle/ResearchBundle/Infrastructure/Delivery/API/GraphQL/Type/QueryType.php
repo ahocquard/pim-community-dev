@@ -6,6 +6,12 @@ namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
+use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeRepository;
+use Pim\Bundle\ResearchBundle\DomainModel\Category\CategoryCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Category\CategoryRepository;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelRepository;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyRepository;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
@@ -33,21 +39,37 @@ class QueryType extends ObjectType
     /** @var CurrencyRepository */
     private $currencyRepository;
 
+    /** @var ChannelRepository */
+    private $channelRepository;
+
+    /** @var AttributeRepository */
+    private $attributeRepository;
+
+    /** @var CategoryRepository */
+    private $categoryRepository;
+
     public function __construct(
         Types $types,
         ProductRepository $productRepository,
         FamilyRepository $familyRepository,
         LocaleRepository $localeRepository,
-        CurrencyRepository $currencyRepository
+        CurrencyRepository $currencyRepository,
+        ChannelRepository $channelRepository,
+        AttributeRepository $attributeRepository,
+        CategoryRepository $categoryRepository
     ) {
         $this->types = $types;
         $this->productRepository = $productRepository;
         $this->familyRepository = $familyRepository;
         $this->localeRepository = $localeRepository;
         $this->currencyRepository = $currencyRepository;
+        $this->channelRepository = $channelRepository;
+        $this->attributeRepository = $attributeRepository;
+        $this->categoryRepository = $categoryRepository;
 
         $config = [
-            'name' => 'Query',
+            'name' => 'query',
+            'decription' => 'Root query',
             'fields' => [
                 'product' => [
                     'type' => $types->get(ProductType::class),
@@ -89,6 +111,36 @@ class QueryType extends ObjectType
                     ],
                     'resolve' => function($root, $args) {
                         return $this->currencyRepository->withCode(CurrencyCode::createFromString($args['code']));
+                    }
+                ],
+                'channel' => [
+                    'type' => $types->get(ChannelType::class),
+                    'description' => 'Returns channel by its a code',
+                    'args' => [
+                        'code' => Type::nonNull(Type::string()),
+                    ],
+                    'resolve' => function($root, $args) {
+                        return $this->channelRepository->withCode(ChannelCode::createFromString($args['code']));
+                    }
+                ],
+                'attribute' => [
+                    'type' => $types->get(AttributeType::class),
+                    'description' => 'Returns attribute by its a code',
+                    'args' => [
+                        'code' => Type::nonNull(Type::string()),
+                    ],
+                    'resolve' => function($root, $args) {
+                        return $this->attributeRepository->withCode(AttributeCode::createFromString($args['code']));
+                    }
+                ],
+                'category' => [
+                    'type' => $types->get(CategoryType::class),
+                    'description' => 'Returns category by its a code',
+                    'args' => [
+                        'code' => Type::nonNull(Type::string()),
+                    ],
+                    'resolve' => function($root, $args) {
+                        return $this->categoryRepository->withCode(CategoryCode::createFromString($args['code']));
                     }
                 ],
             ]

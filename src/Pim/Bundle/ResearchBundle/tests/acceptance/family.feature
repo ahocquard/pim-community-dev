@@ -30,7 +30,7 @@ Feature: Get families information
     When I send the following request:
     """
       {
-        family(code: \"tshirt\") {
+        family(code: "tshirt") {
           code,
           created,
           updated,
@@ -41,6 +41,24 @@ Feature: Get families information
           attribute_as_label {
             code,
             type
+          },
+          attribute_as_image {
+            code,
+            type
+          },
+          attribute_requirements {
+            channel {
+              code
+            },
+            attributes {
+              code
+            },
+          },
+          labels {
+            locale {
+              code
+            },
+            value
           }
         }
       }
@@ -74,7 +92,53 @@ Feature: Get families information
             "attribute_as_label": {
               "code": "name",
               "type": "pim_catalog_text"
-            }
+            },
+            "attribute_as_image": {
+              "code": "image",
+              "type": "pim_catalog_image"
+            },
+            "attribute_requirements": [
+              {
+                "channel": {
+                  "code": "ecommerce"
+                },
+                "attributes": [
+                  {
+                    "code": "color"
+                  },
+                  {
+                    "code": "size"
+                  }
+                ]
+              },
+              {
+                "channel": {
+                  "code": "tablet"
+                },
+                "attributes": [
+                  {
+                    "code": "image"
+                  },
+                  {
+                    "code": "name"
+                  }
+                ]
+              }
+            ],
+            "labels": [
+              {
+                "locale": {
+                  "code": "en_US"
+                },
+                "value": "FR tshirt"
+              },
+              {
+                "locale": {
+                  "code": "fr_FR"
+                },
+                "value": "US tshirt"
+              }
+            ]
           }
         }
       }
@@ -87,7 +151,7 @@ Feature: Get families information
     When I send the following request:
     """
       {
-        family(code: \"tshirt\") {
+        family(code: "tshirt") {
           code,
           attributes {
             code
@@ -122,7 +186,7 @@ Feature: Get families information
     When I send the following request:
     """
       {
-        family(code: \"tshirt\") {
+        family(code: "tshirt") {
           code,
           created,
           updated,
@@ -154,7 +218,7 @@ Feature: Get families information
     When I send the following request:
     """
       {
-        family(code: \"computer\") {
+        family(code: "computer") {
           code
         }
       }

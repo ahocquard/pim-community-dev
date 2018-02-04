@@ -2,8 +2,12 @@ parameters:
     pim_research.infrastructure.delivery.api.graphql.types.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types
     pim_research.infrastructure.delivery.api.graphql.type.query_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\QueryType
     pim_research.infrastructure.delivery.api.graphql.type.family_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\FamilyType
+    pim_research.infrastructure.delivery.api.graphql.type.attribute_requirement_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\AttributeRequirementType
     pim_research.infrastructure.delivery.api.graphql.type.locale_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\LocaleType
     pim_research.infrastructure.delivery.api.graphql.type.currency_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\CurrencyType
+    pim_research.infrastructure.delivery.api.graphql.type.channel_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\ChannelType
+    pim_research.infrastructure.delivery.api.graphql.type.category_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\CategoryType
+    pim_research.infrastructure.delivery.api.graphql.type.label_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\LabelType
     pim_research.infrastructure.delivery.api.graphql.type.product_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\ProductType
     pim_research.infrastructure.delivery.api.graphql.type.attribute_type.class: Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\AttributeType
 
@@ -19,6 +23,9 @@ services:
             - '@pim_research.domain_model.family.family_repository'
             - '@pim_research.domain_model.locale.locale_repository'
             - '@pim_research.domain_model.currency.currency_repository'
+            - '@pim_research.domain_model.channel.channel_repository'
+            - '@pim_research.domain_model.attribute.attribute_repository'
+            - '@pim_research.domain_model.category.category_repository'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true
@@ -32,20 +39,52 @@ services:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true
 
-    pim_research.infrastructure.delivery.api.graphql.type.locale_type:
-        class: '%pim_research.infrastructure.delivery.api.graphql.type.locale_type.class%'
+    pim_research.infrastructure.delivery.api.graphql.type.attribute_requirement_type:
+        class: '%pim_research.infrastructure.delivery.api.graphql.type.attribute_requirement_type.class%'
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
-            - '@pim_research.domain_model.locale.locale_repository'
+            - '@pim_research.domain_model.channel.channel_repository'
+            - '@pim_research.domain_model.attribute.attribute_repository'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true
+
+    pim_research.infrastructure.delivery.api.graphql.type.locale_type:
+        class: '%pim_research.infrastructure.delivery.api.graphql.type.locale_type.class%'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true
 
     pim_research.infrastructure.delivery.api.graphql.type.currency_type:
         class: '%pim_research.infrastructure.delivery.api.graphql.type.currency_type.class%'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true
+
+    pim_research.infrastructure.delivery.api.graphql.type.channel_type:
+        class: '%pim_research.infrastructure.delivery.api.graphql.type.channel_type.class%'
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
+            - '@pim_research.domain_model.locale.locale_repository'
             - '@pim_research.domain_model.currency.currency_repository'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true
+
+    pim_research.infrastructure.delivery.api.graphql.type.category_type:
+        class: '%pim_research.infrastructure.delivery.api.graphql.type.category_type.class%'
+        arguments:
+            - '@pim_research.infrastructure.delivery.api.graphql.types'
+            - '@pim_research.domain_model.category.category_repository'
+        tags:
+            - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
+        lazy: true
+
+    pim_research.infrastructure.delivery.api.graphql.type.label_type:
+        class: '%pim_research.infrastructure.delivery.api.graphql.type.label_type.class%'
+        arguments:
+            - '@pim_research.infrastructure.delivery.api.graphql.types'
+            - '@pim_research.domain_model.locale.locale_repository'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true

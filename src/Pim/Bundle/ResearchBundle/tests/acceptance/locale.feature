@@ -10,7 +10,7 @@ Feature: Get locales information
     When I send the following request:
     """
       {
-        locale(code: \"en_US\") {
+        locale(code: "en_US") {
           code,
           enabled
         }
@@ -32,7 +32,7 @@ Feature: Get locales information
     When I send the following request:
     """
       {
-        locale(code: \"de_DE\") {
+        locale(code: "de_DE") {
           code,
           enabled
         }

@@ -7,17 +7,14 @@ namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use Pim\Bundle\ResearchBundle\DomainModel\Attribute\Attribute;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\Currency;
-use Pim\Bundle\ResearchBundle\DomainModel\Locale\Locale;
-use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types;
 
 class CurrencyType extends ObjectType
 {
     public function __construct()
     {
         $config = [
-            'name' => 'Currency',
+            'name' => 'currency',
             'description' => 'Currency',
             'fields' => function() {
                 return [

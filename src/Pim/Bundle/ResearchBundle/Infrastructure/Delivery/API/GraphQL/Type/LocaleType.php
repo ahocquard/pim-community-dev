@@ -16,7 +16,7 @@ class LocaleType extends ObjectType
     public function __construct()
     {
         $config = [
-            'name' => 'Locale',
+            'name' => 'locale',
             'description' => 'Locale',
             'fields' => function() {
                 return [

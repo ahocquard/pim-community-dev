@@ -32,6 +32,10 @@ class DatabaseLocaleRepository implements LocaleRepository
 
     public function withCodes(array $localeCodes): array
     {
+        if (empty($localeCodes)) {
+            return [];
+        }
+
         $sql = <<<SQL
             SELECT l.code, l.is_activated 
             FROM pim_catalog_locale l

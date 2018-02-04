@@ -36,7 +36,8 @@ class RequestContext implements Context
      */
     public function sendRequest(string $request): void
     {
-        $query = str_replace(PHP_EOL, '', $request);
+        $query = addslashes($request);
+        $query = str_replace(PHP_EOL, '', $query);
         $data = <<<JSON
 {
   "query": "query $query"
@@ -55,7 +56,7 @@ JSON;
     public function receiveResponse(string $expectedResponse): void
     {
         $content = $this->response->getContent();
-        Assert::assertJsonStringEqualsJsonString($expectedResponse, $this->response->getContent());
+        Assert::assertJsonStringEqualsJsonString($expectedResponse, $content);
 
         $this->response = null;
     }

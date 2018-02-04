@@ -32,6 +32,10 @@ class DatabaseAttributeRepository implements AttributeRepository
 
     public function withCodes(array $attributeCodes): array
     {
+        if (empty($attributeCodes)) {
+            return [];
+        }
+
         $sql = <<<SQL
             SELECT a.code, a.attribute_type, a.is_localizable, a.is_scopable 
             FROM pim_catalog_attribute a

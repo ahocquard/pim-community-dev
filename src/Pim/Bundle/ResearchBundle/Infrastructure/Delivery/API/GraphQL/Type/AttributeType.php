@@ -15,7 +15,7 @@ class AttributeType extends ObjectType
     public function __construct(Types $types)
     {
         $config = [
-            'name' => 'Attribute',
+            'name' => 'attribute',
             'description' => 'Attribute',
             'fields' => function() use ($types) {
                 return [

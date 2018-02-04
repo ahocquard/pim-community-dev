@@ -10,7 +10,7 @@ Feature: Get currencies information
     When I send the following request:
     """
       {
-        currency(code: \"EUR\") {
+        currency(code: "EUR") {
           code,
           enabled
         }
@@ -32,7 +32,7 @@ Feature: Get currencies information
     When I send the following request:
     """
       {
-        currency(code: \"USD\") {
+        currency(code: "USD") {
           code,
           enabled
         }
