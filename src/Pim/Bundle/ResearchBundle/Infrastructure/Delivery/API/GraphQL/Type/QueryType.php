@@ -93,6 +93,19 @@ class QueryType extends ObjectType
                         return $this->familyRepository->withCode(FamilyCode::createFromString($args['code']));
                     }
                 ],
+                'families' => [
+                    'type' => Type::listOf($types->get(FamilyType::class)),
+                    'description' => 'Returns family by its a code',
+                    'args' => [
+                        'codes' => Type::listOf(Type::nonNull(Type::string())),
+                    ],
+                    'resolve' => function($root, $args) {
+                        $familyCodes = array_map(function($familyCode) {
+                            return FamilyCode::createFromString($familyCode);
+                        }, $args['codes']);
+                        return $this->familyRepository->withCodes($familyCodes);
+                    }
+                ],
                 'locale' => [
                     'type' => $types->get(LocaleType::class),
                     'description' => 'Returns locale by its a code',
