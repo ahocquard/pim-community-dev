@@ -24,7 +24,7 @@ services:
             - '@pim_research.domain_model.locale.locale_repository'
             - '@pim_research.domain_model.currency.currency_repository'
             - '@pim_research.domain_model.channel.channel_repository'
-            - '@pim_research.domain_model.attribute.attribute_repository'
+            - '@pim_research.infrastructure.persistence.database.cached_attribute_repository'
             - '@pim_research.domain_model.category.category_repository'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
@@ -34,7 +34,7 @@ services:
         class: '%pim_research.infrastructure.delivery.api.graphql.type.family_type.class%'
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
-            - '@pim_research.domain_model.attribute.attribute_repository'
+            - '@pim_research.infrastructure.persistence.database.cached_attribute_repository'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true
@@ -44,7 +44,7 @@ services:
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
             - '@pim_research.domain_model.channel.channel_repository'
-            - '@pim_research.domain_model.attribute.attribute_repository'
+            - '@pim_research.infrastructure.persistence.database.cached_attribute_repository'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true

@@ -25,7 +25,7 @@ class HookContext implements Context
     /**
      * @BeforeScenario
      */
-    public function resetDatabase()
+    public function resetDatabase(): void
     {
         $this->resetDatabase->byDeletingRows();
     }

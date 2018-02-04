@@ -8,5 +8,10 @@ interface AttributeRepository
 {
     public function withCode(AttributeCode $attributeCode): ?Attribute;
 
+    /**
+     * @param array $attributeCodes
+     *
+     * @return Attribute[]
+     */
     public function withCodes(array $attributeCodes): array;
 }
