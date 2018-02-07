@@ -117,6 +117,7 @@ class AppKernel extends Kernel
             new Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle(),
             new FOS\OAuthServerBundle\FOSOAuthServerBundle(),
             new Oneup\FlysystemBundle\OneupFlysystemBundle(),
+            new Overblog\DataLoaderBundle\OverblogDataLoaderBundle()
         ];
     }
 

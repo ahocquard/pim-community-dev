@@ -41,10 +41,6 @@ security:
             anonymous:                      true
 
         oauth_token:
-            pattern:                        ^/graphql
-            security:                       false
-
-        oauth_token:
             pattern:                        ^/api/oauth/v1/token
             security:                       false
 
@@ -57,6 +53,10 @@ security:
             fos_oauth:                      true
             stateless:                      true
             access_denied_handler:          pim_api.security.access_denied_handler
+
+        graph_ql:
+            pattern:                        ^/graphql
+            security:                       false
 
         main:
             pattern:                        ^/
