@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Loader;
 
 use Overblog\PromiseAdapter\Adapter\WebonyxGraphQLSyncPromiseAdapter;
-use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeCode;
-use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeRepository;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelRepository;
 
-class AttributeLoader
+class ChannelLoader
 {
+    /** @var WebonyxGraphQLSyncPromiseAdapter */
     private $promiseAdapter;
 
+    /** @var ChannelRepository */
     private $repository;
 
-    public function __construct(WebonyxGraphQLSyncPromiseAdapter $promiseAdapter, AttributeRepository $repository)
+    public function __construct(WebonyxGraphQLSyncPromiseAdapter $promiseAdapter, ChannelRepository $repository)
     {
         $this->promiseAdapter = $promiseAdapter;
         $this->repository = $repository;
@@ -27,7 +29,7 @@ class AttributeLoader
         return $this->promiseAdapter->getWebonyxPromiseAdapter()->all($attributes);
     }
 
-    public function key(AttributeCode $attributeCode)
+    public function key(ChannelCode $attributeCode)
     {
         return $attributeCode->getValue();
     }

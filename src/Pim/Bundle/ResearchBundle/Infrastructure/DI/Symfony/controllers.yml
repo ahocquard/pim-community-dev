@@ -6,3 +6,4 @@ services:
        class: '%pim_research.infrastructure.delivery.http.graphql.class%'
        arguments:
            - '@pim_research.infrastructure.delivery.api.graphql.type.query_type'
+           - '@overblog_dataloader.webonyx_graphql_sync_promise_adapter'

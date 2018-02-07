@@ -69,7 +69,7 @@ class QueryType extends ObjectType
 
         $config = [
             'name' => 'query',
-            'decription' => 'Root query',
+            'description' => 'Root query',
             'fields' => [
                 'product' => [
                     'type' => $types->get(ProductType::class),

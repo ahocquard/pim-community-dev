@@ -7,18 +7,16 @@ namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use Pim\Bundle\ResearchBundle\DomainModel\Attribute\AttributeRepository;
-use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelRepository;
+use Overblog\DataLoader\DataLoader;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\AttributeRequirement;
-use Pim\Bundle\ResearchBundle\DomainModel\Family\Family;
 use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types;
 
 class AttributeRequirementType extends ObjectType
 {
     public function __construct(
         Types $types,
-        ChannelRepository $channelRepository,
-        AttributeRepository $attributeRepository
+        DataLoader $channelDataloader,
+        DataLoader $attributeDataLoader
     ) {
         $config = [
             'name' => 'family_requirement',
@@ -30,12 +28,12 @@ class AttributeRequirementType extends ObjectType
                 ];
             },
             'resolveField' => function(AttributeRequirement $attributeRequirement, $args, $context, ResolveInfo $info)
-            use ($channelRepository, $attributeRepository) {
+            use ($channelDataloader, $attributeDataLoader) {
                 switch ($info->fieldName) {
                     case 'channel':
-                        return $channelRepository->withCode($attributeRequirement->channelCode());
+                        return $channelDataloader->load($attributeRequirement->channelCode());
                     case 'attributes':
-                        return $attributeRepository->withCodes($attributeRequirement->requiredAttributeCodes());
+                        return $attributeDataLoader->loadMany($attributeRequirement->requiredAttributeCodes());
                     default:
                         return null;
                 }

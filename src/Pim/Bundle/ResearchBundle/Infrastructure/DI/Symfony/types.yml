@@ -21,10 +21,10 @@ services:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
             - '@pim_research.domain_model.product.product_repository'
             - '@pim_research.domain_model.family.family_repository'
-            - '@pim_research.domain_model.locale.locale_repository'
+            - '@pim_research.infrastructure.persistence.database.database_locale_repository'
             - '@pim_research.domain_model.currency.currency_repository'
-            - '@pim_research.domain_model.channel.channel_repository'
-            - '@pim_research.infrastructure.persistence.database.cached_attribute_repository'
+            - '@pim_research.infrastructure.persistence.database.database_channel_repository'
+            - '@pim_research.infrastructure.persistence.database.database_attribute_repository'
             - '@pim_research.domain_model.category.category_repository'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
@@ -34,7 +34,7 @@ services:
         class: '%pim_research.infrastructure.delivery.api.graphql.type.family_type.class%'
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
-            - '@pim_research.infrastructure.persistence.database.cached_attribute_repository'
+            - '@attribute_dataloader'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true
@@ -43,8 +43,8 @@ services:
         class: '%pim_research.infrastructure.delivery.api.graphql.type.attribute_requirement_type.class%'
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
-            - '@pim_research.domain_model.channel.channel_repository'
-            - '@pim_research.infrastructure.persistence.database.cached_attribute_repository'
+            - '@channel_dataloader'
+            - '@attribute_dataloader'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true
@@ -65,7 +65,7 @@ services:
         class: '%pim_research.infrastructure.delivery.api.graphql.type.channel_type.class%'
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
-            - '@pim_research.domain_model.locale.locale_repository'
+            - '@locale_dataloader'
             - '@pim_research.domain_model.currency.currency_repository'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
@@ -84,7 +84,7 @@ services:
         class: '%pim_research.infrastructure.delivery.api.graphql.type.label_type.class%'
         arguments:
             - '@pim_research.infrastructure.delivery.api.graphql.types'
-            - '@pim_research.domain_model.locale.locale_repository'
+            - '@locale_dataloader'
         tags:
             - { name: 'pim_research.infrastructure.delivery.api.graphql.type' }
         lazy: true

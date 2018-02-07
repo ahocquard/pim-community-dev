@@ -4,6 +4,7 @@ namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\Http;
 
 use GraphQL\GraphQL;
 use GraphQL\Type\Schema;
+use Overblog\PromiseAdapter\Adapter\WebonyxGraphQLSyncPromiseAdapter;
 use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type\QueryType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,13 +15,19 @@ class GraphQLController
     /** @var QueryType */
     private $queryType;
 
-    public function __construct(QueryType $queryType)
+    /** @var WebonyxGraphQLSyncPromiseAdapter */
+    private $promiseAdapter;
+
+    public function __construct(QueryType $queryType, WebonyxGraphQLSyncPromiseAdapter $promiseAdapter)
     {
         $this->queryType = $queryType;
+        $this->promiseAdapter = $promiseAdapter;
     }
 
-    public function handleGraphQLRequest(Request $request): Response
+    public function handleGraphqlRequest(Request $request): Response
     {
+        GraphQL::setPromiseAdapter($this->promiseAdapter->getWebonyxPromiseAdapter());
+
         $data = json_decode($request->getContent(), true);
         $data = $data['query'];
 
@@ -28,14 +35,13 @@ class GraphQLController
             'query' => $this->queryType,
         ]);
 
-        $result = GraphQL::executeQuery(
+        $promise = GraphQL::promiseToExecute(
+            $this->promiseAdapter->getWebonyxPromiseAdapter(),
             $schema,
-            $data,
-            null,
-            null,
-            null
+            $data
         );
 
+        $result = $this->promiseAdapter->getWebonyxPromiseAdapter()->wait($promise);
         $output = $result->toArray();
 
         return new JsonResponse($output);

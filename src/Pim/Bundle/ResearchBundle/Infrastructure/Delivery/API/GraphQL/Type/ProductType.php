@@ -16,7 +16,7 @@ class ProductType extends ObjectType
     public function __construct(Types $types, FamilyRepository $familyRepository)
     {
         $config = [
-            'name' => 'Product',
+            'name' => 'product',
             'description' => 'Product',
             'fields' => function() use ($types) {
                 return [

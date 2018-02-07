@@ -6,7 +6,6 @@ parameters:
     pim_research.infrastructure.persistence.database.database_currency_repository.class:  Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseCurrencyRepository
     pim_research.infrastructure.persistence.database.database_channel_repository.class:  Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseChannelRepository
     pim_research.infrastructure.persistence.database.database_category_repository.class:  Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Database\DatabaseCategoryRepository
-    pim_research.infrastructure.persistence.database.cached_attribute_repository.class: Pim\Bundle\ResearchBundle\Infrastructure\Persistence\Cache\CachedAttributeRepository
 
 services:
     pim_research.domain_model.family.family_repository:
@@ -19,12 +18,12 @@ services:
         arguments:
             - '@doctrine.orm.entity_manager'
 
-    pim_research.domain_model.attribute.attribute_repository:
+    pim_research.infrastructure.persistence.database.database_attribute_repository:
         class: '%pim_research.infrastructure.persistence.database.database_attribute_repository.class%'
         arguments:
             - '@doctrine.orm.entity_manager'
 
-    pim_research.domain_model.locale.locale_repository:
+    pim_research.infrastructure.persistence.database.database_locale_repository:
         class: '%pim_research.infrastructure.persistence.database.database_locale_repository.class%'
         arguments:
             - '@doctrine.orm.entity_manager'
@@ -34,7 +33,7 @@ services:
         arguments:
             - '@doctrine.orm.entity_manager'
 
-    pim_research.domain_model.channel.channel_repository:
+    pim_research.infrastructure.persistence.database.database_channel_repository:
         class: '%pim_research.infrastructure.persistence.database.database_channel_repository.class%'
         arguments:
             - '@doctrine.orm.entity_manager'
@@ -43,8 +42,3 @@ services:
         class: '%pim_research.infrastructure.persistence.database.database_category_repository.class%'
         arguments:
             - '@doctrine.orm.entity_manager'
-
-    pim_research.infrastructure.persistence.database.cached_attribute_repository:
-        class: '%pim_research.infrastructure.persistence.database.cached_attribute_repository.class%'
-        arguments:
-            - '@pim_research.domain_model.attribute.attribute_repository'

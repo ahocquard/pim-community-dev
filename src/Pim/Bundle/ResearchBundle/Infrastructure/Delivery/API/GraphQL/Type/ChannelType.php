@@ -7,6 +7,7 @@ namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Type;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use Overblog\DataLoader\DataLoader;
 use Pim\Bundle\ResearchBundle\DomainModel\Channel\Channel;
 use Pim\Bundle\ResearchBundle\DomainModel\Currency\CurrencyRepository;
 use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleRepository;
@@ -14,7 +15,7 @@ use Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Types;
 
 class ChannelType extends ObjectType
 {
-    public function __construct(Types $types, LocaleRepository $localeRepository, CurrencyRepository $currencyRepository)
+    public function __construct(Types $types, DataLoader $localeDataLoader, CurrencyRepository $currencyRepository)
     {
         $config = [
             'name' => 'channel',
@@ -27,12 +28,12 @@ class ChannelType extends ObjectType
                     'labels' => Type::listOf($types->get(LabelType::class)),
                 ];
             },
-            'resolveField' => function(Channel $channel, $args, $context, ResolveInfo $info) use ($localeRepository, $currencyRepository) {
+            'resolveField' => function(Channel $channel, $args, $context, ResolveInfo $info) use ($localeDataLoader, $currencyRepository) {
                 switch ($info->fieldName) {
                     case 'code':
                         return $channel->code()->getValue();
                     case 'locales':
-                        return $localeRepository->withCodes($channel->localeCodes());
+                        return $localeDataLoader->loadMany($channel->localeCodes());
                     case 'currencies':
                         return $currencyRepository->withCodes($channel->currencyCodes());
                     case 'labels':

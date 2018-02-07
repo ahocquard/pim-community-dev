@@ -23,7 +23,7 @@ class ResetDatabase
         $tables = $schemaManager->listTableNames();
         $sql = 'SET FOREIGN_KEY_CHECKS = 0;';
 
-        foreach($tables as $table) {
+        foreach ($tables as $table) {
             $sql .= sprintf('DELETE FROM %s ;', $table);
         }
 

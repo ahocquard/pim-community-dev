@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\API\GraphQL\Loader;
 
 use Overblog\PromiseAdapter\Adapter\WebonyxGraphQLSyncPromiseAdapter;
-use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelCode;
-use Pim\Bundle\ResearchBundle\DomainModel\Channel\ChannelRepository;
+use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Locale\LocaleRepository;
 
-class ChannelLoader
+class LocaleLoader
 {
     /** @var WebonyxGraphQLSyncPromiseAdapter */
     private $promiseAdapter;
 
-    /** @var ChannelRepository */
+    /** @var LocaleRepository */
     private $repository;
 
-    public function __construct(WebonyxGraphQLSyncPromiseAdapter $promiseAdapter, ChannelRepository $repository)
+    public function __construct(WebonyxGraphQLSyncPromiseAdapter $promiseAdapter, LocaleRepository $repository)
     {
         $this->promiseAdapter = $promiseAdapter;
         $this->repository = $repository;
@@ -29,7 +29,7 @@ class ChannelLoader
         return $this->promiseAdapter->getWebonyxPromiseAdapter()->all($attributes);
     }
 
-    public function key(ChannelCode $attributeCode)
+    public function key(LocaleCode $attributeCode)
     {
         return $attributeCode->getValue();
     }
