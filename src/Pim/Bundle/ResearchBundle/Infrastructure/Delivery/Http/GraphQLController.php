@@ -2,6 +2,7 @@
 
 namespace Pim\Bundle\ResearchBundle\Infrastructure\Delivery\Http;
 
+use GraphQL\Error\Debug;
 use GraphQL\GraphQL;
 use GraphQL\Type\Schema;
 use Overblog\PromiseAdapter\Adapter\WebonyxGraphQLSyncPromiseAdapter;
@@ -29,7 +30,8 @@ class GraphQLController
         GraphQL::setPromiseAdapter($this->promiseAdapter->getWebonyxPromiseAdapter());
 
         $data = json_decode($request->getContent(), true);
-        $data = $data['query'];
+        $query = $data['query'];
+        $variables = $data['variables'] ?? [];
 
         $schema = new Schema([
             'query' => $this->queryType,
@@ -38,10 +40,14 @@ class GraphQLController
         $promise = GraphQL::promiseToExecute(
             $this->promiseAdapter->getWebonyxPromiseAdapter(),
             $schema,
-            $data
+            $query,
+            null,
+            null,
+            $variables
         );
 
         $result = $this->promiseAdapter->getWebonyxPromiseAdapter()->wait($promise);
+
         $output = $result->toArray();
 
         return new JsonResponse($output);
