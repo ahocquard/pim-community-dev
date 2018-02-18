@@ -17,8 +17,32 @@ class FamilyType extends ObjectType
         $config = [
             'name' => 'family',
             'description' => 'Family',
-            'fields' => function() use ($types) {
+            'fields' => function() use ($types, $attributeDataLoader) {
                 return [
+                    //'code' => [
+                    //    'type' => Type::string() ,
+                    //    'resolve' => function(Family $family) {
+                    //        return $family->code()->getValue();
+                    //    }
+                    //],
+                    //'created' => [
+                    //    'type' => Type::string() ,
+                    //    'resolve' => function(Family $family) {
+                    //        return $family->created()->format(\DateTime::ISO8601);
+                    //    }
+                    //],
+                    //'updated' => [
+                    //    'type' => Type::string(),
+                    //    'resolve' => function(Family $family) {
+                    //        return $family->updated()->format(\DateTime::ISO8601);
+                    //    }
+                    //],
+                    //'attributes' => [
+                    //    'type' => Type::listOf($types->get(AttributeType::class)),
+                    //    'resolve' => function(Family $family) use ($attributeDataLoader) {
+                    //        return $attributeDataLoader->loadMany($family->attributeCodes());
+                    //    }
+                    //],
                     'code' => Type::string(),
                     'created' => Type::string(),
                     'updated' => Type::string(),

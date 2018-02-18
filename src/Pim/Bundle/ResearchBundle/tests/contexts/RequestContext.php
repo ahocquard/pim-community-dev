@@ -26,6 +26,9 @@ class RequestContext implements Context
     /** @var Response */
     protected $response;
 
+    /** @var int */
+    protected $time;
+
     public function __construct(Client $client)
     {
         $this->client = $client;
@@ -44,10 +47,10 @@ class RequestContext implements Context
 }
 JSON;
 
+        $start = microtime(true);
         $this->client->request('GET', 'graphql', [], [], [], $data);
         $this->response = $this->client->getResponse();
-
-
+        $this->time = (microtime(true) - $start) * 1000;
     }
 
     /**
@@ -59,5 +62,14 @@ JSON;
         Assert::assertJsonStringEqualsJsonString($expectedResponse, $content);
 
         $this->response = null;
+    }
+
+
+    /**
+     * @Given /^I should get the response in less than ([0-9]+) ms*$/
+     */
+    public function receiveResponseInLessThan(int $maxTime): void
+    {
+        Assert::assertTrue($this->time < $maxTime, sprintf('It tooks "%s" ms.', $this->time));
     }
 }

@@ -81,4 +81,30 @@ class FamilyContext implements Context
             $this->loader->load($family);
         }
     }
+
+    /**
+     * @Given /^([0-9]+) families with ([0-9]+) attributes$/
+     */
+    public function createSeveralFamilies(int $numberFamilies, int $numberAttributes): void
+    {
+        $attributeCodes = [];
+        for ($i = 0; $i < $numberAttributes; $i++) {
+            $attributeCodes[] = AttributeCode::createFromString('attribute_' . $i);
+        }
+
+        for ($i = 0; $i < $numberFamilies; $i++) {
+            $family = new Family(
+                FamilyCode::createFromString('family_' . $i),
+                new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
+                new \DateTimeImmutable('2017-05-07T00:00:00+00:00'),
+                null,
+                null,
+                $attributeCodes,
+                [],
+                []
+            );
+
+            $this->loader->load($family);
+        }
+    }
 }

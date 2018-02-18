@@ -39,4 +39,21 @@ class AttributeContext implements Context
             $this->loader->load($attribute);
         }
     }
+
+    /**
+     * @Given /^([0-9]+) attributes$/
+     */
+    public function createSeveralAttributes(int $numberAttributes): void
+    {
+        for ($i = 0; $i<$numberAttributes; $i++) {
+            $attribute = new Attribute(
+                AttributeCode::createFromString('attribute_' . $i),
+                'pim_catalog_text',
+                true,
+                true
+            );
+
+            $this->loader->load($attribute);
+        }
+    }
 }

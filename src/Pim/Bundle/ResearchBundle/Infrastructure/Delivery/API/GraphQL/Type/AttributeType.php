@@ -17,28 +17,47 @@ class AttributeType extends ObjectType
         $config = [
             'name' => 'attribute',
             'description' => 'Attribute',
-            'fields' => function() use ($types) {
-                return [
-                    'code' => Type::string(),
-                    'type' => Type::string(),
-                    'localizable' => Type::boolean(),
-                    'scopable' => Type::boolean(),
-                ];
-            },
-            'resolveField' => function(Attribute $attribute, $args, $context, ResolveInfo $info) {
-                switch ($info->fieldName) {
-                    case 'code':
+            'fields' => [
+                'code' => [
+                    'type' => Type::string() ,
+                    'resolve' => function(Attribute $attribute) {
                         return $attribute->code()->getValue();
-                    case 'type':
+                    }
+                ],
+                'type' => [
+                    'type' => Type::string() ,
+                    'resolve' => function(Attribute $attribute) {
                         return $attribute->type();
-                    case 'localizable':
+                    }
+                ],
+                'localizable' => [
+                    'type' => Type::boolean() ,
+                    'resolve' => function(Attribute $attribute) {
                         return $attribute->localizable();
-                    case 'scopable':
+                    }
+                ],
+                'scopable' => [
+                    'type' => Type::boolean(),
+                    'resolve' => function(Attribute $attribute) {
                         return $attribute->scopable();
-                    default:
-                        return null;
-                }
-            }
+                    }
+                ],
+            ]
+
+            //'resolveField' => function(Attribute $attribute, $args, $context, ResolveInfo $info) {
+            //    switch ($info->fieldName) {
+            //        case 'code':
+            //            return $attribute->code()->getValue();
+            //        case 'type':
+            //            return $attribute->type();
+            //        case 'localizable':
+            //            return $attribute->localizable();
+            //        case 'scopable':
+            //            return $attribute->scopable();
+            //        default:
+            //            return null;
+            //    }
+            //}
         ];
         parent::__construct($config);
     }

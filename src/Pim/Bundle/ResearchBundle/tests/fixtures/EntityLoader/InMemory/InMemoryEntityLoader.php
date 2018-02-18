@@ -23,8 +23,8 @@ class InMemoryEntityLoader implements EntityFixtureLoader
         $this->repository = $repository;
     }
 
-    public function load($attribute): void
+    public function load($entity): void
     {
-        $this->repository->add($attribute);
+        $this->repository->add($entity);
     }
 }
