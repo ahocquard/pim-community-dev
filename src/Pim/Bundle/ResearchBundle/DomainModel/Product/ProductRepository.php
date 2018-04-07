@@ -7,4 +7,6 @@ namespace Pim\Bundle\ResearchBundle\DomainModel\Product;
 interface ProductRepository
 {
     public function withIdentifier(ProductIdentifier $productIdentifier): ?Product;
+
+    public function withIdentifiers(array $productIdentifiers): array;
 }

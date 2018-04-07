@@ -6,6 +6,8 @@ namespace Pim\Bundle\ResearchBundle\DomainModel\Product;
 
 use Pim\Bundle\ResearchBundle\DomainModel\Category\CategoryCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Group\GroupCode;
+use Pim\Bundle\ResearchBundle\DomainModel\Product\Association\Association;
 
 class Product
 {
@@ -27,13 +29,21 @@ class Product
     /** @var CategoryCode[] */
     private $categoryCodes;
 
+    /** @var GroupCode[] */
+    private $groupCodes;
+
+    /** @var Association[] */
+    private $associations;
+
     public function __construct(
         ProductIdentifier $identifier,
         \DateTimeInterface $created,
         \DateTimeInterface $updated,
         bool $enabled,
         ?FamilyCode $familyCode,
-        array $categoryCodes
+        array $categoryCodes,
+        array $groupCodes,
+        array $associations
     ) {
         $this->identifier = $identifier;
         $this->created = $created;
@@ -44,6 +54,14 @@ class Product
         $this->categoryCodes = (function(CategoryCode ...$categoryCode) {
             return $categoryCode;
         })(...$categoryCodes);
+
+        $this->groupCodes = (function(GroupCode ...$groupCode) {
+            return $groupCode;
+        })(...$groupCodes);
+
+        $this->associations = (function(Association ...$association) {
+            return $association;
+        })(...$associations);
     }
 
     public function identifier(): ProductIdentifier
@@ -74,5 +92,15 @@ class Product
     public function categoryCodes(): array
     {
         return $this->categoryCodes;
+    }
+
+    public function groupCodes(): array
+    {
+        return $this->groupCodes;
+    }
+
+    public function associations(): array
+    {
+        return $this->associations;
     }
 }
