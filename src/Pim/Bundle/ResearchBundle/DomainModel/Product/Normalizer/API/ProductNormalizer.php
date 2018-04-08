@@ -10,6 +10,7 @@ use Pim\Bundle\ResearchBundle\DomainModel\Group\GroupCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Association\Association;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
+use Pim\Bundle\ResearchBundle\DomainModel\Product\Value\ProductValueCollection;
 
 /**
  * @author    Alexandre Hocquard <alexandre.hocquard@akeneo.com>
@@ -55,6 +56,8 @@ class ProductNormalizer
             ];
         }
 
+        $values = $this->normalizeValues($product->productValues());
+
         $data = [
             'identifier' => $product->identifier()->getValue(),
             'created' => $product->created()->format('c'),
@@ -64,10 +67,27 @@ class ProductNormalizer
             'groups' => $groups,
             'categories' => $categories,
             'associations' => $associations,
-            'values' => []
+            'values' => $values
         ];
 
 
         return $data;
+    }
+
+    private function normalizeValues(ProductValueCollection $values): array
+    {
+        $normalizedValues = [];
+
+        foreach ($values->valuesIndexedByAttribute() as $attributeCode => $productValues) {
+            foreach ($productValues as $productValue) {
+                $normalizedValues[$attributeCode][] = [
+                    'scope' => null != $productValue->channelCode() ? $productValue->channelCode()->getValue() : null,
+                    'locale' => null !== $productValue->localeCode() ? $productValue->localeCode()->getValue() : null,
+                    'data' => $productValue->data()
+                ];
+            }
+        }
+
+        return $normalizedValues;
     }
 }

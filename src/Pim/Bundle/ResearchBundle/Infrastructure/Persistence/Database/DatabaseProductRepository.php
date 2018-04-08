@@ -14,11 +14,15 @@ use Pim\Bundle\ResearchBundle\DomainModel\Product\Association\AssociationType;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Product;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductRepository;
+use Pim\Bundle\ResearchBundle\DomainModel\Product\Value\ValueCollectionFactory;
 
 class DatabaseProductRepository implements ProductRepository
 {
     /** @var EntityManagerInterface */
     private $entityManager;
+
+    /** @var ValueCollectionFactory */
+    private $valueCollectionFactory;
 
     /**
      * @param EntityManagerInterface $entityManager
@@ -26,6 +30,7 @@ class DatabaseProductRepository implements ProductRepository
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
+        $this->valueCollectionFactory = new ValueCollectionFactory();
     }
 
     public function withIdentifier(ProductIdentifier $productIdentifier): ?Product
@@ -83,6 +88,9 @@ SQL;
             $updated = Type::getType(Type::DATETIME)->convertToPhpValue($row['updated'], $platform);
             $isEnabled = Type::getType(Type::BOOLEAN)->convertToPhpValue($row['is_enabled'], $platform);
             $familyCode = Type::getType(Type::STRING)->convertToPhpValue($row['family_code'], $platform);
+            $rawValues = json_decode($row['raw_values'], true);
+
+            $valueCollection = $this->valueCollectionFactory->createFromStorageFormat($rawValues);
 
             $products[] = new Product(
                 ProductIdentifier::createFromString($identifier),
@@ -90,6 +98,7 @@ SQL;
                 $updated,
                 $isEnabled,
                 null !== $familyCode ? FamilyCode::createFromString($familyCode) : null,
+                $valueCollection,
                 $this->hydrateCategoryCodes($row),
                 $this->hydrateGroupCodes($row),
                 $associations[$identifier]

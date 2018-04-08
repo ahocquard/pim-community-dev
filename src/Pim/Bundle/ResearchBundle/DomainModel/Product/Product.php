@@ -8,6 +8,8 @@ use Pim\Bundle\ResearchBundle\DomainModel\Category\CategoryCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Family\FamilyCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Group\GroupCode;
 use Pim\Bundle\ResearchBundle\DomainModel\Product\Association\Association;
+use Pim\Bundle\ResearchBundle\DomainModel\Product\Value\ProductValue;
+use Pim\Bundle\ResearchBundle\DomainModel\Product\Value\ProductValueCollection;
 
 class Product
 {
@@ -35,12 +37,16 @@ class Product
     /** @var Association[] */
     private $associations;
 
+    /** @var ProductValueCollection */
+    private $productValues;
+
     public function __construct(
         ProductIdentifier $identifier,
         \DateTimeInterface $created,
         \DateTimeInterface $updated,
         bool $enabled,
         ?FamilyCode $familyCode,
+        ProductValueCollection $productValues,
         array $categoryCodes,
         array $groupCodes,
         array $associations
@@ -50,6 +56,7 @@ class Product
         $this->updated = $updated;
         $this->enabled = $enabled;
         $this->familyCode = $familyCode;
+        $this->productValues = $productValues;
 
         $this->categoryCodes = (function(CategoryCode ...$categoryCode) {
             return $categoryCode;
@@ -62,6 +69,7 @@ class Product
         $this->associations = (function(Association ...$association) {
             return $association;
         })(...$associations);
+
     }
 
     public function identifier(): ProductIdentifier
@@ -102,5 +110,10 @@ class Product
     public function associations(): array
     {
         return $this->associations;
+    }
+
+    public function productValues(): ProductValueCollection
+    {
+        return $this->productValues;
     }
 }
