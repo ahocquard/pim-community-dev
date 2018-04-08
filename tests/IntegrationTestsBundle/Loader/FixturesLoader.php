@@ -148,6 +148,7 @@ class FixturesLoader implements FixturesLoaderInterface
                 '-h '.$this->container->getParameter('database_host'),
                 '-u '.$this->container->getParameter('database_user'),
                 '-p'.$this->container->getParameter('database_password'),
+                '-P '.$this->container->getParameter('database_port'),
                 $this->container->getParameter('database_name'),
                 sprintf('< %s', $file),
             ]);
@@ -299,6 +300,7 @@ class FixturesLoader implements FixturesLoaderInterface
             '-h '.$this->container->getParameter('database_host'),
             '-u '.$this->container->getParameter('database_user'),
             '-p'.$this->container->getParameter('database_password'),
+            '-P '.$this->container->getParameter('database_port'),
             sprintf('-e "DROP DATABASE IF EXISTS %s;"', $this->container->getParameter('database_name')),
         ]);
     }
@@ -310,6 +312,7 @@ class FixturesLoader implements FixturesLoaderInterface
             '-h '.$this->container->getParameter('database_host'),
             '-u '.$this->container->getParameter('database_user'),
             '-p'.$this->container->getParameter('database_password'),
+            '-P '.$this->container->getParameter('database_port'),
             sprintf('-e "CREATE DATABASE %s;"', $this->container->getParameter('database_name')),
         ]);
     }
@@ -329,6 +332,7 @@ class FixturesLoader implements FixturesLoaderInterface
             '-h '.$this->container->getParameter('database_host'),
             '-u '.$this->container->getParameter('database_user'),
             '-p'.$this->container->getParameter('database_password'),
+            '-P '.$this->container->getParameter('database_port'),
             '--skip-add-drop-table',
             '--quick',
             $this->container->getParameter('database_name'),
@@ -346,6 +350,7 @@ class FixturesLoader implements FixturesLoaderInterface
             '-h '.$this->container->getParameter('database_host'),
             '-u '.$this->container->getParameter('database_user'),
             '-p'.$this->container->getParameter('database_password'),
+            '-P '.$this->container->getParameter('database_port'),
             $this->container->getParameter('database_name'),
             '< '.$filepath,
         ]);

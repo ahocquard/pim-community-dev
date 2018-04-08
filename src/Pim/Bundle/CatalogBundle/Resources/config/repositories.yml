@@ -170,6 +170,8 @@ services:
         class: '%pim_catalog.repository.product.class%'
         factory: 'doctrine.orm.entity_manager:getRepository'
         arguments: ['%pim_catalog.entity.abstract_product.class%']
+        calls:
+            - [setProductRepository, ['@pim_research.domain_model.product.product_repository']]
         tags:
             - { name: 'pim_repository' }
 

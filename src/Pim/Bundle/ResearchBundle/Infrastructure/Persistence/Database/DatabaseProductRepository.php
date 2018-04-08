@@ -162,7 +162,7 @@ SQL;
                 LEFT JOIN pim_catalog_association_product ap on ap.association_id = a.id
                 LEFT JOIN pim_catalog_product p2 on p2.id = ap.product_id
                 WHERE owner_id IS NOT NULL
-                AND p.identifier IN (:identifier)
+                AND p.identifier IN (:identifiers)
                 GROUP BY p.identifier, at.code
             ) as product_association_per_code
             GROUP BY product_association_per_code.identifier;
@@ -178,7 +178,6 @@ SQL;
         $rows = $stmt->fetchAll();
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
-        $associations = [];
         foreach ($rows as $row) {
             $identifier = Type::getType(Type::STRING)->convertToPhpValue($row['identifier'], $platform);
             $decodedAssociations = json_decode($row['associations'], true);

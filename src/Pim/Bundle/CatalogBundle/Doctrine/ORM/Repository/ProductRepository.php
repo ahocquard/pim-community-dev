@@ -5,11 +5,13 @@ namespace Pim\Bundle\CatalogBundle\Doctrine\ORM\Repository;
 use Akeneo\Component\StorageUtils\Repository\CursorableRepositoryInterface;
 use Akeneo\Component\StorageUtils\Repository\IdentifiableObjectRepositoryInterface;
 use Doctrine\ORM\EntityRepository;
+use Pim\Bundle\ResearchBundle\DomainModel\Product\ProductIdentifier;
 use Pim\Component\Catalog\Model\GroupInterface;
 use Pim\Component\Catalog\Model\ProductInterface;
 use Pim\Component\Catalog\Query\ProductQueryBuilderFactoryInterface;
 use Pim\Component\Catalog\Repository\ProductRepositoryInterface;
 use Pim\Component\ReferenceData\ConfigurationRegistryInterface;
+use \Pim\Bundle\ResearchBundle\DomainModel\Product\ProductRepository as ProjectionProductRepository;
 
 /**
  * Product repository
@@ -23,26 +25,41 @@ class ProductRepository extends EntityRepository implements
     IdentifiableObjectRepositoryInterface,
     CursorableRepositoryInterface
 {
-    /** @var ProductQueryBuilderFactoryInterface */
-    protected $queryBuilderFactory;
-
-    /** @var ConfigurationRegistryInterface */
-    protected $referenceDataRegistry;
+    /** @var ProjectionProductRepository */
+    protected $projectionProductRepository;
 
     /**
      * {@inheritdoc}
      */
     public function getItemsFromIdentifiers(array $identifiers)
     {
-        $qb = $this->createQueryBuilder('p')
-            ->where('p.identifier IN (:identifiers)')
-            ->setParameter('identifiers', $identifiers);
+        //$qb = $this->createQueryBuilder('p')
+        //    ->where('p.identifier IN (:identifiers)')
+        //    ->setParameter('identifiers', $identifiers);
+        //
+        //$query = $qb->getQuery();
+        //$query->useQueryCache(false);
+        //
+        //return $query->execute();
 
-        $query = $qb->getQuery();
-        $query->useQueryCache(false);
+        $productIdentifiers = array_map(function($identifier) {
+            return ProductIdentifier::createFromString($identifier);
+        }, $identifiers);
 
-        return $query->execute();
+        $products = $this->projectionProductRepository->withIdentifiers($productIdentifiers);
+
+        return $products;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setProductRepository(ProjectionProductRepository $projectionProductRepository)
+    {
+        $this->projectionProductRepository = $projectionProductRepository;
+    }
+
+
 
     /**
      * {@inheritdoc}

@@ -115,7 +115,14 @@ abstract class AbstractCursor implements CursorInterface
                 ) {
                     $orderedItems[] = $hydratedItem;
                     break;
+                } elseif (
+                    method_exists($hydratedItem, 'identifier')
+                    && (string) $identifier === $hydratedItem->identifier()->getValue()
+                ) {
+                    $orderedItems[] = $hydratedItem;
+                    break;
                 }
+
             }
         }
 

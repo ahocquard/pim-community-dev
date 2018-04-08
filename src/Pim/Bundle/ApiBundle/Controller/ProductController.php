@@ -14,6 +14,7 @@ use Elasticsearch\Common\Exceptions\ServerErrorResponseException;
 use Pim\Bundle\ApiBundle\Checker\QueryParametersCheckerInterface;
 use Pim\Bundle\ApiBundle\Documentation;
 use Pim\Bundle\ApiBundle\Stream\StreamResourceResponse;
+use Pim\Bundle\ResearchBundle\DomainModel\Product\Normalizer\API\ProductNormalizer;
 use Pim\Component\Api\Exception\DocumentedHttpException;
 use Pim\Component\Api\Exception\PaginationParametersException;
 use Pim\Component\Api\Exception\ViolationHttpException;
@@ -118,6 +119,9 @@ class ProductController
     /** @var ProductBuilderInterface */
     protected $variantProductBuilder;
 
+    /** @var ProductNormalizer */
+    protected $productNormalizer;
+
     /**
      * @param ProductQueryBuilderFactoryInterface   $searchAfterPqbFactory
      * @param NormalizerInterface                   $normalizer
@@ -187,6 +191,7 @@ class ProductController
         $this->variantProductBuilder = $variantProductBuilder;
         $this->apiConfiguration = $apiConfiguration;
         $this->productAttributeFilter = $productAttributeFilter;
+        $this->productNormalizer = new ProductNormalizer();
     }
 
     /**
@@ -679,7 +684,7 @@ class ProductController
         try {
             $count = 'true' === $queryParameters['with_count'] ? $products->count() : null;
             $paginatedProducts = $this->offsetPaginator->paginate(
-                $this->normalizer->normalize($products, 'external_api', $normalizerOptions),
+                $this->productNormalizer->normalizeMany($products),
                 $paginationParameters,
                 $count
             );
@@ -763,7 +768,8 @@ class ProductController
         ];
 
         $paginatedProducts = $this->searchAfterPaginator->paginate(
-            $this->normalizer->normalize($products, 'external_api', $normalizerOptions),
+            $this->productNormalizer->normalizeMany($products),
+            //$this->normalizer->normalize($products, 'external_api', $normalizerOptions),
             $parameters,
             null
         );

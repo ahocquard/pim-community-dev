@@ -33,4 +33,19 @@ class Association
             return $productIdentifier;
         })(...$productIdentifiers);
     }
+
+    public function associationType(): AssociationType
+    {
+        return $this->associationType;
+    }
+
+    public function groupCodes(): array
+    {
+        return $this->groupCodes;
+    }
+
+    public function productIdentifiers(): array
+    {
+        return $this->productIdentifiers;
+    }
 }
