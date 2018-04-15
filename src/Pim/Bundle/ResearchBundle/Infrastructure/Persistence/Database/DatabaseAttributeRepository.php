@@ -40,6 +40,7 @@ class DatabaseAttributeRepository implements AttributeRepository
             SELECT a.code, a.attribute_type, a.is_localizable, a.is_scopable 
             FROM pim_catalog_attribute a
             WHERE a.code IN (:codes)
+            ORDER BY a.code
 SQL;
 
         $connection = $this->entityManager->getConnection();

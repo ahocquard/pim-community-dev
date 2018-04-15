@@ -117,10 +117,10 @@ Feature: Get families information
                 },
                 "attributes": [
                   {
-                    "code": "image"
+                    "code": "name"
                   },
                   {
-                    "code": "name"
+                    "code": "image"
                   }
                 ]
               }

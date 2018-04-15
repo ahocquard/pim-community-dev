@@ -24,6 +24,9 @@ class AttributeLoader
 
     public function load(array $attributeCodes)
     {
+        usort($attributeCodes, function (AttributeCode $attributeCode1, AttributeCode $attributeCode2) {
+            return strcmp($attributeCode1->getValue(), $attributeCode2->getValue());
+        });
         $attributes = $this->repository->withCodes($attributeCodes);
 
         return $this->promiseAdapter->getWebonyxPromiseAdapter()->all($attributes);
